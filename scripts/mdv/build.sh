@@ -204,8 +204,8 @@ build_repo() {
 	cd -
 }
 
-if [[ "$save_to_platform" =~ ^.*3.0.*$ ]]; then
-	arches="SRPMS i586 x86_64 armv7hl aarch64"
+if [[ "$save_to_platform" =~ ^.*rosa2016.*$ ]]; then
+	arches="SRPMS i586 x86_64"
 else
 	arches="SRPMS i686 x86_64 armv7hnl aarch64 znver1"
 fi
