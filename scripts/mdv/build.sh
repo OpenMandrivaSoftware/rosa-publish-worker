@@ -178,7 +178,7 @@ build_repo() {
 					retry=$((retry+1))
 				fi
 			done
-		elif [[ "$save_to_platform" =~ ^.*rosa.*$ ]]; then
+		elif [[ "$save_to_platform" =~ ^.*rosa20* ]]; then
 			printf '%s\n' "/usr/bin/genhdlist2 -v --nolock --allow-empty-media --versioned --xml-info --xml-info-filter='.lzma:lzma -0 --text' --no-hdlist --merge --no-bad-rpm ${path} ${path}"
 			/usr/bin/genhdlist2 -v --nolock --allow-empty-media --versioned --xml-info --xml-info-filter='.lzma:lzma -0 --text' --no-hdlist --merge --no-bad-rpm ${path}
 			rc=$?
@@ -189,7 +189,7 @@ build_repo() {
 		fi
 		rm -f "${path}"/media_info/{new,old}-metadata.lst
 	else
-		if [[ "$save_to_platform" =~ ^.*rosa-server.*$ ]]; then
+		if [[ "$save_to_platform" =~ ^.*rosa-server.* ]]; then
 			/usr/bin/docker run --rm -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}" regenerate
 			rc=$?
 		else
