@@ -127,7 +127,7 @@ build_repo() {
 		[ -f "${container_path}"/new."${arch}".list.downloaded ] && cp -f "${container_path}"/new."${arch}".list.downloaded ${path}/media_info/new-metadata.lst
 		[ -f "${container_path}"/old."${arch}".list ] && cp -f "${container_path}"/old."${arch}".list "${path}"/media_info/old-metadata.lst
 
-		if [[ "$save_to_platform" =~ ^.*rosa-server.*$ ]]; then
+		if [[ "$save_to_platform" =~ ^.*rosa-server.* ]]; then
 			MAX_RETRIES=10
 			WAIT_TIME=60
 			retry=0
@@ -204,7 +204,7 @@ build_repo() {
 	cd -
 }
 
-if [[ "$save_to_platform" =~ ^.*rosa2016.*$ ]]; then
+if [[ "$save_to_platform" =~ ^.*rosa2016.* ]]; then
 	arches="SRPMS i586 x86_64"
 else
 	arches="SRPMS i686 x86_64 armv7hnl aarch64 znver1"
