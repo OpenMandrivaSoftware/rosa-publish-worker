@@ -6,7 +6,7 @@ released="$RELEASED"
 rep_name="$REPOSITORY_NAME"
 use_file_store="$USE_FILE_STORE"
 testing="$TESTING"
-save_to_platform=$SAVE_TO_PLATFORM
+save_to_platform=$BUILD_TO_PLATFORM
 
 echo "TESTING = $testing"
 echo "RELEASED = $released"
@@ -31,10 +31,6 @@ if [ "$testing" = 'true' ]; then
   status='testing'
   use_debug_repo='false'
 fi
-
-# Update genhdlist2
-urpmi.update -a
-urpmi --downloader wget --wget-options --auth-no-challenge --auto --no-suggests --no-verify-rpm --fastunsafe genhdlist2
 
 arches="SRPMS i586 i686 x86_64 armv7hnl aarch64"
 for arch in $arches ; do
