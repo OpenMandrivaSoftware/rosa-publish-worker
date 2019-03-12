@@ -18,7 +18,7 @@ save_to_platform="$BUILD_FOR_PLATFORM"
 build_for_platform="$BUILD_FOR_PLATFORM"
 regenerate_metadata="$REGENERATE_METADATA"
 key_server="pool.sks-keyservers.net"
-OMV_key="BF81DE15"
+ROSA_key="16A853E7"
 
 # Current path:
 # - /home/vagrant/scripts/publish-packages
