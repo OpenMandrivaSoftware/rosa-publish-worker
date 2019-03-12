@@ -72,6 +72,24 @@ if [ "$testing" != 'true' ]; then
 	fi
 fi
 
+make_gpg_macro() {
+	echo '--> make macro for RPM gpg signs'
+	gpg --import ${gnupg_path}/pubring.gpg
+	gpg --import ${gnupg_path}/secring.gpg
+	gpg --list-keys
+	rpmmacros=~/.rpmmacros
+	rm -f $rpmmacros
+	keyname=`gpg --list-public-keys --homedir $gnupg_path | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
+	echo "%_signature gpg"        >> $rpmmacros
+	echo "%_gpg_name $keyname"    >> $rpmmacros
+	echo "%_gpg_path $gnupg_path" >> $rpmmacros
+	echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
+	echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
+	echo "--> keyname: $keyname"
+	exit 0
+}
+
+make_gpg_macro()
 build_repo() {
 	path=$1
 	arch=$2
@@ -87,13 +105,7 @@ build_repo() {
 				has_key="$(rpm -Kv "$i" | grep 'key ID' | grep -ow ${KEYNAME,,})"
 				if [ -z "$has_key" ]; then
 					chmod 0666 "$i"
-					cat /dev/null | setsid rpm --quiet \
-					--define "_gpg_name '$KEYNAME'" \
-					--define "__gpg /usr/bin/gpg" \
-					--define "_signature gpg" \
-					--define "__gpg_check_password_cmd /bin/true" \
-					--define "__gpg_sign_cmd %{__gpg} gpg --no-tty --pinentry-mode loopback --batch --no-armor --digest-algo 'sha512' --passphrase-file '$SECRET' --no-secmem-warning -u '%{_gpg_name}' --sign --detach-sign --output %{__signature_filename} %{__plaintext_filename}" \
-					--resign "$i" >/dev/null 2>&1
+					rpm --addsign $i
 					rc="$?"
 					[ "$rc" != "0" ] && failures=$((failures+1))
 					chmod 0644 "$i"
@@ -303,19 +315,13 @@ for arch in $arches; do
 				curl -O -L "${file_store_url}"/"${sha1}"
 				mv "$sha1" "$fullname"
 				printf '%s\n' $fullname >> "$new_packages.downloaded"
-				printf 'MIME type of $fullame: %s\n' $(file -bi $fullname)
+				printf 'MIME type of $fullname: %s\n' $(file -bi $fullname)
 				chown root:root $fullname
 				# Add signature to RPM
 				if [ "$sign_rpm" != '0' ]; then
 					chmod 0666 "$fullname"
 					printf '%s\n' "--> Starting to add sign to rpm package."
-					cat /dev/null | setsid rpm --quiet \
-					--define "_gpg_name '$KEYNAME'" \
-					--define "__gpg /usr/bin/gpg" \
-					--define "_signature gpg" \
-					--define "__gpg_check_password_cmd /bin/true" \
-					--define "__gpg_sign_cmd %{__gpg} gpg --no-tty --pinentry-mode loopback --batch --no-armor --digest-algo 'sha512' --passphrase-file '$SECRET' --no-secmem-warning -u '%{_gpg_name}' --sign --detach-sign --output %{__signature_filename} %{__plaintext_filename}" \
-					--addsign "$fullname" >/dev/null 2>&1
+					rpm --addsign "$fullname"
 					# Save exit code
 					rc=$?
 					if [ "${rc}" = '0' ]; then
