@@ -58,12 +58,20 @@ if [ "$testing" != 'true' ]; then
 		chmod 700 "$gnupg_path"
 		if [ -f "$gnupg_path"/pubring.gpg ]; then
 			gpg --import "$gnupg_path"/pubring.gpg
+			gpg --import ${gnupg_path}/secring.gpg
 			sleep 1
-			KEYNAME="$(gpg --list-public-keys --homedir $gnupg_path |sed -n 4p | awk '{ print $1 }' | awk '{print substr($0,length-7,9)}'| awk '{ sub(/.*\//, ""); print tolower($0) }')"
+			KEYNAME=`gpg --list-public-keys --homedir $gnupg_path | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
 			printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
+			gpg --list-keys
+			rpmmacros=~/.rpmmacros
+			rm -f $rpmmacros
+			echo "%_signature gpg"        >> $rpmmacros
+			echo "%_gpg_name $KEYNAME"    >> $rpmmacros
+			echo "%_gpg_path $gnupg_path" >> $rpmmacros
+			echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
+			echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
+			echo "--> keyname: $KEYNAME"
 			sign_rpm=1
-			SECRET="$gnupg_path"/secret
-			[ ! -e "${SECRET}" ] && printf '%s\n' "Your secret file does not exist. RPM signing disabled." && sign_rpm=0
 			[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
 		else
 			printf '%s\n' "Your $gnupg_path/pubring.gpg file does not exist. RPM signing is disabled."
@@ -72,24 +80,6 @@ if [ "$testing" != 'true' ]; then
 	fi
 fi
 
-make_gpg_macro() {
-	echo '--> make macro for RPM gpg signs'
-	gpg --import ${gnupg_path}/pubring.gpg
-	gpg --import ${gnupg_path}/secring.gpg
-	gpg --list-keys
-	rpmmacros=~/.rpmmacros
-	rm -f $rpmmacros
-	keyname=`gpg --list-public-keys --homedir $gnupg_path | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
-	echo "%_signature gpg"        >> $rpmmacros
-	echo "%_gpg_name $keyname"    >> $rpmmacros
-	echo "%_gpg_path $gnupg_path" >> $rpmmacros
-	echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
-	echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
-	echo "--> keyname: $keyname"
-	exit 0
-}
-
-make_gpg_macro()
 build_repo() {
 	path=$1
 	arch=$2
