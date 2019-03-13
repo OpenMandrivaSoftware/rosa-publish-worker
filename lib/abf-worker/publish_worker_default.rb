@@ -104,8 +104,8 @@ module AbfWorker
       if resp && resp['repository'] && resp['repository']['key_pair']
         key_pair = resp['repository']['key_pair']
         if key_pair['public'].length > 0 && key_pair['secret'].length > 0
-          open("/root/gnupg/pubring.gpg", "w") { |f| f.write(key_pair['public']) }
-          open("/root/gnupg/secring.gpg", "w") { |f| f.write(key_pair['secret']) }
+          open("/root/.gnupg/pubring.gpg", "w") { |f| f.write(key_pair['public']) }
+          open("/root/.gnupg/secring.gpg", "w") { |f| f.write(key_pair['secret']) }
         end
       end
     end
