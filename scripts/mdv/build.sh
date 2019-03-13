@@ -47,7 +47,7 @@ if [ "$testing" = 'true' ]; then
 fi
 
 sign_rpm=0
-gnupg_path=/root/.gnupg
+gnupg_path=/root/gnupg
 KEYNAME=''
 
 if [ "$testing" != 'true' ]; then
