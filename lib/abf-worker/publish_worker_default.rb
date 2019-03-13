@@ -96,7 +96,7 @@ module AbfWorker
     end
 
     def get_keys
-      system "rm -rf /root/gnupg && mkdir /root/gnupg && chmod 700 /root/gnupg"
+      system "rm -rf /root/.gnupg/ && mkdir /root/.gnupg && chmod 700 /root/.gnupg"
       resp = nil
       IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null") do |io| 
         resp = JSON.parse(io.read)
