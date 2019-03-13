@@ -60,7 +60,7 @@ if [ "$testing" != 'true' ]; then
 			gpg --import "$gnupg_path"/pubring.gpg
 			gpg --import ${gnupg_path}/secring.gpg
 			sleep 1
-			KEYNAME=`gpg --list-public-keys --homedir $gnupg_path | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
+			KEYNAME=`gpg --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
 			printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
 			gpg --list-keys
 			rpmmacros=~/.rpmmacros
