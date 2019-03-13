@@ -93,6 +93,7 @@ build_repo() {
 			failures=0
 			for i in $(find "$path" -name '*.rpm'); do
 				rpm --addsign $i
+				chmod 644 $i
 				printf '%s\n' "--> Package $i already signed"
 			done
 			if [ "${failures}" = '0' ]; then
