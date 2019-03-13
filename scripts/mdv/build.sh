@@ -67,7 +67,7 @@ if [ "$testing" != 'true' ]; then
 			rm -f $rpmmacros
 			echo "%_signature gpg"        >> $rpmmacros
 			echo "%_gpg_name $KEYNAME"    >> $rpmmacros
-			echo "%_gpg_path $gnupg_path" >> $rpmmacros
+			echo "%_gpg_path /root/.gnupg" >> $rpmmacros
 			echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
 			echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
 			echo "--> keyname: $KEYNAME"
