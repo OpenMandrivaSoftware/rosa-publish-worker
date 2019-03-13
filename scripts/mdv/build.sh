@@ -92,16 +92,8 @@ build_repo() {
 			printf '%s\n' "--> Starting to re-sign rpms in $path"
 			failures=0
 			for i in $(find "$path" -name '*.rpm'); do
-				has_key="$(rpm -Kv "$i" | grep 'key ID' | grep -ow ${KEYNAME,,})"
-				if [ -z "$has_key" ]; then
-					chmod 0666 "$i"
-					rpm --addsign $i
-					rc="$?"
-					[ "$rc" != "0" ] && failures=$((failures+1))
-					chmod 0644 "$i"
-				else
-					printf '%s\n' "--> Package $i already signed"
-				fi
+				rpm --addsign $i
+				printf '%s\n' "--> Package $i already signed"
 			done
 			if [ "${failures}" = '0' ]; then
 				printf '%s\n' "--> Packages in $path have been signed successfully."
