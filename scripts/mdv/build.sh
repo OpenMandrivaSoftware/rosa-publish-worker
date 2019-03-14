@@ -162,7 +162,7 @@ build_repo() {
 			while [ "$retry" -lt "$MAX_RETRIES" ]; do
 				printf '%s\n' "--> Running metadata generator"
 				rm -rf "${path}"/.repodata
-				/usr/bin/docker run --rm -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}"
+				/usr/bin/docker run --rm -e build_for_platform=$build_for_platform -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}"
 				rc=$?
 				if [ "$rc" = "0" ]; then
 					break
