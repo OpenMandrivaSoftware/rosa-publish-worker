@@ -50,33 +50,31 @@ sign_rpm=0
 gnupg_path=/root/gnupg
 KEYNAME=''
 
-if [ "$testing" != 'true' ]; then
-	if [ ! -d "$gnupg_path" ]; then
-		printf '%s\n' "--> $gnupg_path does not exist, signing rpms will be not possible"
-		sign_rpm=0
+if [ ! -d "$gnupg_path" ]; then
+	printf '%s\n' "--> $gnupg_path does not exist, signing rpms will be not possible"
+	sign_rpm=0
+else
+	chmod 700 "$gnupg_path"
+	if [ -f "$gnupg_path"/pubring.gpg ]; then
+		gpg --import "$gnupg_path"/pubring.gpg
+		gpg --import ${gnupg_path}/secring.gpg
+		sleep 1
+		KEYNAME=`gpg --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
+		printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
+		gpg --list-keys
+		rpmmacros=~/.rpmmacros
+		rm -f $rpmmacros
+		echo "%_signature gpg"        >> $rpmmacros
+		echo "%_gpg_name $KEYNAME"    >> $rpmmacros
+		echo "%_gpg_path /root/.gnupg" >> $rpmmacros
+		echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
+		echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
+		echo "--> keyname: $KEYNAME"
+		sign_rpm=1
+		[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
 	else
-		chmod 700 "$gnupg_path"
-		if [ -f "$gnupg_path"/pubring.gpg ]; then
-			gpg --import "$gnupg_path"/pubring.gpg
-			gpg --import ${gnupg_path}/secring.gpg
-			sleep 1
-			KEYNAME=`gpg --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
-			printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
-			gpg --list-keys
-			rpmmacros=~/.rpmmacros
-			rm -f $rpmmacros
-			echo "%_signature gpg"        >> $rpmmacros
-			echo "%_gpg_name $KEYNAME"    >> $rpmmacros
-			echo "%_gpg_path /root/.gnupg" >> $rpmmacros
-			echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
-			echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
-			echo "--> keyname: $KEYNAME"
-			sign_rpm=1
-			[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
-		else
-			printf '%s\n' "Your $gnupg_path/pubring.gpg file does not exist. RPM signing is disabled."
-			sign_rpm=0
-		fi
+		printf '%s\n' "Your $gnupg_path/pubring.gpg file does not exist. RPM signing is disabled."
+		sign_rpm=0
 	fi
 fi
 
