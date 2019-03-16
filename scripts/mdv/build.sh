@@ -183,7 +183,7 @@ build_repo() {
 		rm -f "${path}"/media_info/{new,old}-metadata.lst
 	else
 		if [[ "$save_to_platform" =~ ^.*rosa-server.* ]]; then
-			/usr/bin/docker run --rm -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}" regenerate
+			/usr/bin/docker run --rm -e build_for_platform=$build_for_platform -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}" regenerate
 			rc=$?
 		else
 			printf '%s\n' "/usr/bin/genhdlist2 -v --clean --nolock --allow-empty-media --versioned --xml-info --xml-info-filter='.lzma:lzma -0 --text' --no-hdlist $path"
