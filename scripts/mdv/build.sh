@@ -185,6 +185,9 @@ build_repo() {
 		if [[ "$save_to_platform" =~ ^.*rosa-server.* ]]; then
 			/usr/bin/docker run --rm -e build_for_platform=$build_for_platform -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}" regenerate
 			rc=$?
+		elif [[ "$save_to_platform" =~ ^.*rosa-virtualization.* ]]; then
+			/usr/bin/docker run --rm -e build_for_platform=$build_for_platform -v /home/abf/abf-downloads:/share/platforms rosalab/createrepo "${path}" regenerate
+			rc=$?
 		else
 			printf '%s\n' "/usr/bin/genhdlist2 -v --clean --nolock --allow-empty-media --versioned --xml-info --xml-info-filter='.lzma:lzma -0 --text' --no-hdlist $path"
 			/usr/bin/genhdlist2 -v --clean --nolock --allow-empty-media --versioned --xml-info --xml-info-filter='.lzma:lzma -0 --text' --no-hdlist ${path}
