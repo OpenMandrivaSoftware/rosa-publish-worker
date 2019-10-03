@@ -67,8 +67,8 @@ else
 		echo "%_signature gpg"        >> $rpmmacros
 		echo "%_gpg_name $KEYNAME"    >> $rpmmacros
 		echo "%_gpg_path /root/.gnupg" >> $rpmmacros
-		echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
-		echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
+		echo "%_gpgbin /usr/bin/gpg2"  >> $rpmmacros
+		echo "%__gpg /usr/bin/gpg2"    >> $rpmmacros
 		echo "--> keyname: $KEYNAME"
 		sign_rpm=1
 		[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
