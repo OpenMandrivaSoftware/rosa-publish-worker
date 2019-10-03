@@ -13,19 +13,19 @@ if [ ! -d "$gnupg_path" ]; then
 fi
 
 function make_macro {
-	gpg --import "$gnupg_path"/pubring.gpg
-	gpg --import ${gnupg_path}/secring.gpg
+	gpg2 --import "$gnupg_path"/pubring.gpg
+	gpg2 --import ${gnupg_path}/secring.gpg
 	sleep 1
-	KEYNAME=`gpg --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
+	KEYNAME=`gpg2 --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
 	printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
-	gpg --list-keys
+	gpg2 --list-keys
 	rpmmacros=~/.rpmmacros
 	rm -f $rpmmacros
 	echo "%_signature gpg"        >> $rpmmacros
 	echo "%_gpg_name $KEYNAME"    >> $rpmmacros
 	echo "%_gpg_path /root/.gnupg" >> $rpmmacros
-	echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
-	echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
+	echo "%_gpgbin /usr/bin/gpg2"  >> $rpmmacros
+	echo "%__gpg /usr/bin/gpg2"    >> $rpmmacros
 	echo "--> keyname: $KEYNAME"
 }
 make_macro
