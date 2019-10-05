@@ -3,38 +3,22 @@ set -x
 
 printf '%s\n' '--> mdv-scripts/publish-packages: build.sh'
 
-# set script debug
-debug_output=0
+unset SOURCED || :
+for i in "." "${HOME}/rosa-publish-worker/scripts/mdv"
+do
+	if [ -f "${i}/common-funcs.sh" ]; then
+		. "${i}/common-funcs.sh" && \
+		SOURCED=1 && \
+		break
+	fi
+done
+if [ "$SOURCED" != 1 ]; then
+	printf 'File common-funcs.sh not found and not sourced!\n'
+	exit 1
+fi
+unset SOURCED
 
-released="$RELEASED"
-rep_name="$REPOSITORY_NAME"
-is_container="$IS_CONTAINER"
-testing="$TESTING"
-id="$ID"
-file_store_base='http://file-store.rosalinux.ru'
-# save_to_platform - main or personal platform
-save_to_platform="$BUILD_FOR_PLATFORM"
-# build_for_platform - only main platform
-build_for_platform="$BUILD_FOR_PLATFORM"
-regenerate_metadata="$REGENERATE_METADATA"
-key_server="pool.sks-keyservers.net"
-ROSA_key="16A853E7"
-
-# Current path:
-# - /home/vagrant/scripts/publish-packages
-script_path="$(pwd)"
-
-# Container path:
-# - /home/vagrant/container
 container_path="${script_path}"/../../container
-
-# /home/vagrant/share_folder contains:
-# - http://abf.rosalinux.ru/downloads/rosa2012.1/repository
-# - http://abf.rosalinux.ru/downloads/akirilenko_personal/repository/rosa2012.1
-
-repository_path="${PLATFORM_PATH}"
-
-use_debug_repo='true'
 
 # Checks 'released' status of platform
 status='release'
@@ -47,7 +31,6 @@ if [ "$testing" = 'true' ]; then
 fi
 
 sign_rpm=0
-gnupg_path=/root/gnupg
 KEYNAME=''
 
 if [ ! -d "$gnupg_path" ]; then
@@ -56,20 +39,7 @@ if [ ! -d "$gnupg_path" ]; then
 else
 	chmod 700 "$gnupg_path"
 	if [ -f "$gnupg_path"/pubring.gpg ]; then
-		gpg2 --import "$gnupg_path"/pubring.gpg
-		gpg2 --import ${gnupg_path}/secring.gpg
-		sleep 1
-		KEYNAME=`gpg2 --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
-		printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
-		gpg2 --list-keys
-		rpmmacros=~/.rpmmacros
-		rm -f $rpmmacros
-		echo "%_signature gpg"        >> $rpmmacros
-		echo "%_gpg_name $KEYNAME"    >> $rpmmacros
-		echo "%_gpg_path /root/.gnupg" >> $rpmmacros
-		echo "%_gpgbin /usr/bin/gpg2"  >> $rpmmacros
-		echo "%__gpg /usr/bin/gpg2"    >> $rpmmacros
-		echo "--> keyname: $KEYNAME"
+		_local_gpg_setup
 		sign_rpm=1
 		[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
 	else

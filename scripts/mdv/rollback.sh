@@ -2,26 +2,25 @@
 
 printf '%s\n' '--> mdv-scripts/publish-packages: rollback.sh'
 
-released="$RELEASED"
-rep_name="$REPOSITORY_NAME"
-use_file_store="$USE_FILE_STORE"
-testing="$TESTING"
-save_to_platform=$BUILD_TO_PLATFORM
+unset SOURCED || :
+for i in "${HOME}/rosa-publish-worker/scripts/mdv" "."
+do
+	if [ -f "${i}/common-funcs.sh" ]; then
+		. "${i}/common-funcs.sh" && \
+		SOURCED=1 && \
+		break
+	fi
+done
+if [ "$SOURCED" != 1 ]; then
+	printf 'File common-funcs.sh not found and not sourced!\n'
+	exit 1
+fi
+unset SOURCED
 
 echo "TESTING = $testing"
 echo "RELEASED = $released"
 echo "REPOSITORY_NAME = $rep_name"
-
-# Container path:
-# - /home/vagrant/container
-script_path="$(pwd)"
 container_path="$script_path"/../container/
-repository_path="${PLATFORM_PATH}"
-
-# See: https://abf.rosalinux.ru/abf/abf-ideas/issues/51
-# Move debug packages to special separate repository
-# override below if need
-use_debug_repo='true'
 
 status='release'
 if [ "$released" = 'true' ]; then
