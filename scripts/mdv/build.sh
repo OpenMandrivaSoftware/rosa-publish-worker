@@ -38,11 +38,12 @@ if [ ! -d "$gnupg_path" ]; then
 	sign_rpm=0
 else
 	chmod 700 "$gnupg_path"
-	if [ -f "$gnupg_path"/pubring.gpg ]; then
-		_local_gpg_setup
-		sign_rpm=1
-		[ -z "$KEYNAME" ] && printf '%s\n' "GPG is not imported. RPM signing disabled." && sign_rpm=0
-	else
+	_local_gpg_setup
+	sign_rpm=1
+        if [ -z "$KEYNAME" ]; then
+		printf '%s\n' "GPG is not imported. RPM signing disabled."
+		sign_rpm=0
+	elif [ ! -f "$gnupg_path"/pubring.gpg ]; then
 		printf '%s\n' "Your $gnupg_path/pubring.gpg file does not exist. RPM signing is disabled."
 		sign_rpm=0
 	fi
