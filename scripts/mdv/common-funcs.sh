@@ -23,6 +23,7 @@ save_to_platform="$BUILD_FOR_PLATFORM"
 # - /home/vagrant/scripts/publish-packages
 script_path="$(pwd)"
 gnupg_path="${HOME}/.gnupg"
+import_path="${HOME}/gnupg"
 testing="$TESTING"
 use_debug_repo='true'
 use_file_store="$USE_FILE_STORE"
@@ -48,8 +49,8 @@ _find_gpg(){
 
 _local_gpg_setup(){
 	_find_gpg
-	"${GPG}" --import "${gnupg_path}/pubring.gpg"
-	"${GPG}" --import "${gnupg_path}/secring.gpg"
+	"${GPG}" --import "${import_path}/pubring.gpg"
+	"${GPG}" --import "${import_path}/secring.gpg"
 	sleep 1
 	KEYNAME="$("${GPG}" --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }')"
 	printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
