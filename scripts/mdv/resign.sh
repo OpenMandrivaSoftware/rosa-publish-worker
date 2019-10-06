@@ -1,6 +1,22 @@
 #!/bin/sh
 
 echo '--> Resing RPM script'
+
+unset SOURCED || :
+for i in "${HOME}/rosa-publish-worker/scripts/mdv" "."
+do
+	if [ -f "${i}/common-funcs.sh" ]; then
+		. "${i}/common-funcs.sh" && \
+		SOURCED=1 && \
+		break
+	fi
+done
+if [ "$SOURCED" != 1 ]; then
+	printf 'File common-funcs.sh not found and not sourced!\n'
+	exit 1
+fi
+unset SOURCED
+
 released="$RELEASED"
 rep_name="$REPOSITORY_NAME"
 repository_path="${PLATFORM_PATH}"
@@ -12,24 +28,6 @@ if [ ! -d "$gnupg_path" ]; then
   exit 0
 fi
 
-function make_macro {
-	gpg --import "$gnupg_path"/pubring.gpg
-	gpg --import ${gnupg_path}/secring.gpg
-	sleep 1
-	KEYNAME=`gpg --list-public-keys | sed -n 3p | awk '{ print $2 }' | awk '{ sub(/.*\//, ""); print }'`
-	printf '%s\n' "--> Key used to sign RPM files: $KEYNAME"
-	gpg --list-keys
-	rpmmacros=~/.rpmmacros
-	rm -f $rpmmacros
-	echo "%_signature gpg"        >> $rpmmacros
-	echo "%_gpg_name $KEYNAME"    >> $rpmmacros
-	echo "%_gpg_path /root/.gnupg" >> $rpmmacros
-	echo "%_gpgbin /usr/bin/gpg"  >> $rpmmacros
-	echo "%__gpg /usr/bin/gpg"    >> $rpmmacros
-	echo "--> keyname: $KEYNAME"
-}
-make_macro
-
 function resign_all_rpm_in_folder {
   folder=$1
   if [ -d "$folder" ]; then
@@ -40,6 +38,8 @@ function resign_all_rpm_in_folder {
     done
   fi
 }
+
+_local_gpg_setup
 
 for arch in SRPMS i586 x86_64; do
   for rep in release updates ; do
