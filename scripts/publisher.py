@@ -278,8 +278,11 @@ def invoke_docker(arch):
             shutil.copy(backup_repo + rpm, repo)
             sys.exit(1)
         # sign repodata/repomd.xml
-        subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
+        try:
+            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
                                  '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
+        except subprocess.CalledProcessError:
+            pass
         # move debuginfo in place
         debug_rpm_list = []
         for debug_rpm in os.listdir(tiny_repo):
@@ -301,8 +304,11 @@ def invoke_docker(arch):
                 # rollback rpms
                 shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
                 sys.exit(1)
-            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
+            try:
+                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
                                      '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
+            except subprocess.CalledProcessError:
+                pass
         shutil.rmtree(tiny_repo)
 
 
@@ -344,8 +350,11 @@ def regenerate_metadata_repo(action):
                 repo_unlock(path)
             # gpg --yes --pinentry-mode loopback --passphrase-file /root/.gnupg/secret --detach-sign --armor repodata/repomd.xml
             # sign repodata/repomd.xml
-            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
+            try:
+                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
                                      '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
+            except subprocess.CalledProcessError:
+                pass
 
 
 if __name__ == '__main__':
