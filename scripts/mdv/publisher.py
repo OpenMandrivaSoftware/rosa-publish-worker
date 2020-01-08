@@ -64,11 +64,11 @@ if save_to_platform == 'rosa2019.1':
     metadata_generator = 'rosalab/createrepo:2019.1'
     arches = ['i586', 'x86_64']
 
-if re.match(r"rosa-virt(.*)", platform):
+if re.match(r"rosa-virt(.*)", save_to_platform):
     metadata_generator = 'rosalab/createrepo'
     arches = ['i586', 'x86_64']
 
-if re.match(r"rosa-server(.*)", platform):
+if re.match(r"rosa-server(.*)", save_to_platform):
     metadata_generator = 'rosalab/createrepo'
     arches = ['i586', 'x86_64']
 
