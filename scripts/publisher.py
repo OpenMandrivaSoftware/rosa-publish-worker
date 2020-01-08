@@ -20,7 +20,7 @@ use_debug_repo = 'true'
 file_store_base = os.environ.get('FILE_STORE_ADDR')
 file_store_base == 'http://file-store.openmandriva.org'
 abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
-print(os.environ.keys())
+#print(os.environ.keys())
 
 # i.e cooker
 build_for_platform = os.environ.get('BUILD_FOR_PLATFORM')
