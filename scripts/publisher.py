@@ -110,8 +110,9 @@ def key_stuff():
     key_is = ''
     if os.path.isdir(gpg_dir) and os.path.getsize(gpg_dir) > 0:
         try:
-            p = subprocess.check_output(
-                ['/usr/bin/gpg', '--list-public-keys', '--homedir', gpg_dir])
+            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/pubring.gpg'])
+            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/secring.gpg'])
+            p = subprocess.check_output(['/usr/bin/gpg', '--list-public-keys', '--homedir', gpg_dir])
             # last 8 symbols
             key_pattern = '([A0-Z9]{8}$)'
             omv_key = re.search(key_pattern, p.decode('utf-8'), re.MULTILINE)
