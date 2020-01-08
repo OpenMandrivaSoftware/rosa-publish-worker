@@ -14,8 +14,7 @@ module AbfWorker
       @repository_id   = options['repository']['id']
       @packages        = options['packages'] || {}
       @old_packages    = options['old_packages'] || {}
-      @main_script     = options['main_script']
-      @rollback_script = options['rollback_script']
+      @main_script     = "publisher.py"
       init_packages_lists
       get_keys
       system 'rm -rf ' + APP_CONFIG['output_folder'] + '/publish.log'
@@ -47,9 +46,9 @@ module AbfWorker
       )
     end
 
-    def run_script(rollback = false)
+    def run_script
       command = base_command_for_run
-      script_name = rollback ? @rollback_script : @main_script
+      script_name = @main_script
       command << script_name
       output_folder = APP_CONFIG['output_folder']
 
@@ -59,9 +58,6 @@ module AbfWorker
       exit_status = $?.exitstatus
       if exit_status.nil? or exit_status != 0
         @status = 1
-        run_script(true)
-      elsif rollback
-        @status = 1
       else
         @status = 0
       end
@@ -69,9 +65,9 @@ module AbfWorker
 
     def base_command_for_run
       [
-        'cd ' + ROOT + '/scripts/' + @platform_type + ';',
+        'cd ' + ROOT + '/scripts/;',
         @cmd_params,
-        ' /bin/bash '
+        ' /usr/bin/python '
       ]
     end
 
