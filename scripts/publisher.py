@@ -147,8 +147,8 @@ def generate_rpmmacros():
                 # long string
                 file.write('%__gpg_sign_cmd %__gpg gpg --no-tty '
                            '--pinentry-mode loopback --no-armor --no-secmem-warning '
-                           '--sign --detach-sign --passphrase-file {} --sign '
-                           '--detach-sign --output %__signature_filename %__plaintext_filename\n'.format(gpg_dir + '/secret'))
+                           '--sign --detach-sign --sign '
+                           '--detach-sign --output %__signature_filename %__plaintext_filename\n')
                 file.write('%_disable_source_fetch  0\n')
                 return True
         except OSError:
