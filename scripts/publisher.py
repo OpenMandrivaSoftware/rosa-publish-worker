@@ -18,12 +18,9 @@ OMV_key = 'BF81DE15'
 gnupg_path = '/root/.gnupg'
 use_debug_repo = 'true'
 file_store_base = os.environ.get('FILE_STORE_ADDR')
+file_store_base == 'http://file-store.openmandriva.org'
+abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
 print(os.environ.keys())
-if file_store_base == 'http://file-store.openmandriva.org':
-    abf_repo_path = '/var/lib/openmandriva/abf-downloads:/share/platforms'
-else:
-    abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
-
 
 # i.e cooker
 save_to_platform = os.environ.get('SAVE_TO_PLATFORM')
