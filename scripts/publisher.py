@@ -46,7 +46,7 @@ get_home = os.environ.get('HOME')
 gpg_dir = get_home + '/.gnupg'
 rpm_macro = get_home + '/.rpmmacros'
 # /root/docker-publish-worker/container
-container_path = get_home + '/docker-publish-worker/container'
+container_path = get_home + '/rosa-publish-worker/container'
 
 if save_to_platform == 'cooker' or 'rock' or 'rolling' or '4.0':
     metadata_generator = 'openmandriva/createrepo'
