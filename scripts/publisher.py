@@ -18,6 +18,7 @@ OMV_key = 'BF81DE15'
 gnupg_path = '/root/.gnupg'
 use_debug_repo = 'true'
 file_store_base = os.environ.get('FILE_STORE_ADDR')
+print(os.environ.keys())
 if file_store_base == 'http://file-store.openmandriva.org':
     abf_repo_path = '/var/lib/openmandriva/abf-downloads:/share/platforms'
 else:
