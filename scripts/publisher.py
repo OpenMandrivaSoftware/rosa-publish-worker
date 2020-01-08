@@ -23,7 +23,6 @@ abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
 print(os.environ.keys())
 
 # i.e cooker
-save_to_platform = os.environ.get('SAVE_TO_PLATFORM')
 build_for_platform = os.environ.get('BUILD_FOR_PLATFORM')
 repository_path = os.environ.get('PLATFORM_PATH')
 repository_name = os.environ.get('REPOSITORY_NAME')
@@ -46,27 +45,27 @@ rpm_macro = get_home + '/.rpmmacros'
 # /root/docker-publish-worker/container
 container_path = get_home + '/rosa-publish-worker/container'
 
-if save_to_platform == 'cooker' or 'rock' or 'rolling' or '4.0':
+if build_for_platform == 'cooker' or 'rock' or 'rolling' or '4.0':
     metadata_generator = 'openmandriva/createrepo'
     arches = ['SRPMS', 'i686', 'x86_64',
               'armv7hnl', 'aarch64', 'znver1', 'riscv64']
-if save_to_platform == '3.0':
+if build_for_platform == '3.0':
     metadata_generator = 'openmandriva/genhdlists2'
     arches = ['i586', 'x86_64']
 
-if save_to_platform == 'rosa2012.1' or 'rosa2014.1' or 'rosa2016.1' or 'rosa2019.0':
+if build_for_platform == 'rosa2012.1' or 'rosa2014.1' or 'rosa2016.1' or 'rosa2019.0':
     metadata_generator = 'rosalab/genhdlists2'
     arches = ['i586', 'x86_64']
 
-if save_to_platform == 'rosa2019.1':
+if build_for_platform == 'rosa2019.1':
     metadata_generator = 'rosalab/createrepo:2019.1'
     arches = ['i586', 'x86_64']
 
-if re.match(r"rosa-virt(.*)", save_to_platform):
+if re.match(r"rosa-virt(.*)", build_for_platform):
     metadata_generator = 'rosalab/createrepo'
     arches = ['i586', 'x86_64']
 
-if re.match(r"rosa-server(.*)", save_to_platform):
+if re.match(r"rosa-server(.*)", build_for_platform):
     metadata_generator = 'rosalab/createrepo'
     arches = ['i586', 'x86_64']
 
