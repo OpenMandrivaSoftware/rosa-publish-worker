@@ -173,6 +173,8 @@ def sign_rpm(path):
                 print('waiting for 5 second and try resign again')
                 time.sleep(5)
                 subprocess.check_output(['rpm', '--addsign', rpm])
+                # remove chmod on rpm4
+                subprocess.check_output(['chmod', '644', rpm])
                 continue
     else:
         print("no key provided, signing disabled")
