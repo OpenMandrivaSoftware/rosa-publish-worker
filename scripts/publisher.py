@@ -343,7 +343,7 @@ def regenerate_metadata_repo(action):
             # create .publish.lock
             repo_lock(path)
             try:
-                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [path], action)
+                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [path, action])
                 repo_unlock(path)
             except subprocess.CalledProcessError:
                 print("something went wrong with publishing for %s" % path)
