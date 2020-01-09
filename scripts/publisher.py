@@ -271,6 +271,7 @@ def invoke_docker(arch):
         repo_lock(repo)
         try:
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path, metadata_generator, repo])
+            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
             repo_unlock(repo)
         except subprocess.CalledProcessError:
             print('publishing failed, rollbacking rpms')
@@ -296,8 +297,7 @@ def invoke_docker(arch):
         if os.path.exists(debug_repo) and debug_rpm_list:
             repo_lock(debug_repo)
             try:
-                subprocess.check_output(
-                    ['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path, metadata_generator, debug_repo])
+                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
                 repo_unlock(debug_repo)
             except subprocess.CalledProcessError:
                 print('publishing failed, rollbacking rpms')
@@ -344,7 +344,7 @@ def regenerate_metadata_repo(action):
             # create .publish.lock
             repo_lock(path)
             try:
-                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path, metadata_generator, path, action])
+                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [path], action)
                 repo_unlock(path)
             except subprocess.CalledProcessError:
                 print("something went wrong with publishing for %s" % path)
