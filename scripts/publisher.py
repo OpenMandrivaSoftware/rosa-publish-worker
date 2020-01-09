@@ -270,8 +270,7 @@ def invoke_docker(arch):
                 shutil.copy(tiny_repo + rpm, repo)
         repo_lock(repo)
         try:
-            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v',
-                                     abf_repo_path, metadata_generator, repo])
+            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path, metadata_generator, repo])
             repo_unlock(repo)
         except subprocess.CalledProcessError:
             print('publishing failed, rollbacking rpms')
