@@ -55,19 +55,19 @@ if build_for_platform == '3.0':
 
 if build_for_platform == 'rosa2012.1' or 'rosa2014.1' or 'rosa2016.1' or 'rosa2019.0':
     metadata_generator = 'rosalab/genhdlists2'
-    arches = ['i586', 'x86_64']
+    arches = ['SRPMS', 'i586', 'x86_64']
 
 if build_for_platform == 'rosa2019.1':
     metadata_generator = 'rosalab/createrepo:2019.1'
-    arches = ['i586', 'x86_64']
+    arches = ['SRPMS', 'i586', 'x86_64']
 
 if re.match(r"rosa-virt(.*)", build_for_platform):
     metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
-    arches = ['i586', 'x86_64']
+    arches = ['SRPMS', 'i586', 'x86_64']
 
 if re.match(r"rosa-server(.*)", build_for_platform):
     metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
-    arches = ['i586', 'x86_64']
+    arches = ['SRPMS', 'i586', 'x86_64']
 
 
 if released == 'false':
