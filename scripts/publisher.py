@@ -92,6 +92,8 @@ def download_hash(hashfile, arch):
                 page2 = json.loads(page)
                 name = page2[0]['file_name']
                 print("%s %s" % (name, fstore_file_url))
+                file_names_downloaded = '/tmp/new.{}.list.downloaded'.format(arch)
+                print(name, file=open(file_names_downloaded, "a"))
                 # curl -O -L http://file-store.openmandriva.org/api/v1/file_stores/169a726a478251325230bf3aec3a8cc04444ed3b
                 download_file = requests.get(fstore_file_url, stream=True)
                 tmp_dir = '/tmp/' + arch
@@ -250,6 +252,7 @@ def invoke_docker(arch):
             if '.rpm' in rpm:
                 os.remove(sourcepath + rpm)
     if os.path.exists(rpm_arch_list) and os.path.getsize(rpm_arch_list) > 0:
+        subprocess.check_output(['rm', '-fv', '/tmp/*.downloaded'])
         download_hash(rpm_arch_list, arch)
         source = os.listdir(sourcepath)
         for files in source:
