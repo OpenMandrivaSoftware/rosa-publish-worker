@@ -235,6 +235,8 @@ def invoke_docker(arch):
     rpm_arch_list = container_path + '/' + 'new.' + arch + '.list'
     # old.SRPMS.list
     rpm_old_list = container_path + '/' + 'old.' + arch + '.list'
+    # /tmp/new.x86_64.list.downloaded
+    rpm_new_list = '/tmp/' + 'new.' + arch + '.list.downloaded'
     # /share/platforms/rolling/repository/SRPMS/main/release-rpm-new/
     tiny_repo = repository_path + '/' + arch + '/' + \
         repository_name + '/' + status + '-rpm-new/'
@@ -253,6 +255,7 @@ def invoke_docker(arch):
                 os.remove(sourcepath + rpm)
     if os.path.exists(rpm_arch_list) and os.path.getsize(rpm_arch_list) > 0:
         subprocess.check_output(['rm', '-fv', '/tmp/*.downloaded'])
+        # download hashes here and make /tmp/new.x86_64.list.downloaded
         download_hash(rpm_arch_list, arch)
         source = os.listdir(sourcepath)
         for files in source:
@@ -273,6 +276,9 @@ def invoke_docker(arch):
                 shutil.copy(tiny_repo + rpm, repo)
         repo_lock(repo)
         try:
+            if build_for_platform == 'rosa2012.1' or 'rosa2014.1' or 'rosa2016.1' or 'rosa2019.0':
+                subprocess.check_output(['cp', '-fv', rpm_old_list, repo + '/media_info/'])
+                subprocess.check_output(['cp', '-fv', rpm_new_list, repo + '/media_info/'])
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
             repo_unlock(repo)
         except subprocess.CalledProcessError:
