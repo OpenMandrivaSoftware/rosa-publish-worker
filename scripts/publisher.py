@@ -281,7 +281,8 @@ def invoke_docker(arch):
                 subprocess.check_output(['cp', '-fv', rpm_new_list, repo + '/media_info/new-metadata.lst'])
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
             repo_unlock(repo)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(e)
             print('publishing failed, rollbacking rpms')
             repo_unlock(repo)
             # rollback rpms
