@@ -275,10 +275,16 @@ def invoke_docker(arch):
                 rpm_list.append(rpm)
                 shutil.copy(tiny_repo + rpm, repo)
         repo_lock(repo)
-        try:
-            if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
+        if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
+            try:
                 subprocess.check_output(['cp', '-fv', rpm_old_list, repo + '/media_info/old-metadata.lst'])
+            except:
+                pass
+            try:
                 subprocess.check_output(['cp', '-fv', rpm_new_list, repo + '/media_info/new-metadata.lst'])
+            except:
+                pass
+        try:
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
             repo_unlock(repo)
         except subprocess.CalledProcessError as e:
