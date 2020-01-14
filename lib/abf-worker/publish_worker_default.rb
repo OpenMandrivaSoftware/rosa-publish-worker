@@ -16,7 +16,7 @@ module AbfWorker
       @old_packages    = options['old_packages'] || {}
       @main_script     = "publisher.py"
       init_packages_lists
-      get_keys
+      get_keys if !options.include?('resign_rpms') || options['resign_rpms']
       system 'rm -rf ' + APP_CONFIG['output_folder'] + '/publish.log'
       run_script
       send_results
