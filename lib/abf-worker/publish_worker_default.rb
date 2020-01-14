@@ -16,6 +16,7 @@ module AbfWorker
       @old_packages    = options['old_packages'] || {}
       @main_script     = "publisher.py"
       init_packages_lists
+      system "rm -rf /root/.gnupg/ && mkdir /root/.gnupg && chmod 700 /root/.gnupg && rm -rf /root/gnupg && mkdir /root/gnupg"
       get_keys if !options.include?('resign_rpms') || options['resign_rpms']
       system 'rm -rf ' + APP_CONFIG['output_folder'] + '/publish.log'
       run_script
@@ -92,7 +93,6 @@ module AbfWorker
     end
 
     def get_keys
-      system "rm -rf /root/.gnupg/ && mkdir /root/.gnupg && chmod 700 /root/.gnupg && rm -rf /root/gnupg && mkdir /root/gnupg"
       resp = nil
       IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null") do |io| 
         resp = JSON.parse(io.read)
