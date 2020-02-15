@@ -3,6 +3,7 @@
 import requests
 import re
 import os
+import stat
 import json
 import sys
 import subprocess
@@ -26,6 +27,7 @@ abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
 build_for_platform = os.environ.get('BUILD_FOR_PLATFORM')
 repository_path = os.environ.get('PLATFORM_PATH')
 repository_name = os.environ.get('REPOSITORY_NAME')
+distrib_type = os.environ.get('TYPE')
 # RELEASE = true/false
 released = os.environ.get('RELEASED')
 # testing = true/false
@@ -45,29 +47,20 @@ rpm_macro = get_home + '/.rpmmacros'
 # /root/docker-publish-worker/container
 container_path = get_home + '/rosa-publish-worker/container'
 
-if build_for_platform == 'cooker' or 'rock' or 'rolling' or '4.0':
-    metadata_generator = 'openmandriva/createrepo'
-    arches = ['SRPMS', 'i686', 'x86_64',
-              'armv7hnl', 'aarch64', 'znver1', 'riscv64']
-if build_for_platform == '3.0':
-    metadata_generator = 'openmandriva/genhdlists2'
-    arches = ['i586', 'x86_64']
-
-if build_for_platform == 'rosa2012.1' or 'rosa2014.1' or 'rosa2016.1' or 'rosa2019.0':
+if distrib_type == 'mdv':
     metadata_generator = 'rosalab/genhdlists2'
     arches = ['SRPMS', 'i586', 'x86_64']
+    base_sign_cmd = '/rpm5/lib64/ld-linux-x86-64.so.2 --library-path /rpm5/lib64:/rpm5/usr/lib64 /rpm5/rpm --addsign'
 
-if build_for_platform == 'rosa2019.1':
+if distrib_type == 'dnf':
     metadata_generator = 'rosalab/createrepo:2019.1'
     arches = ['SRPMS', 'i586', 'x86_64']
+    base_sign_cmd = '/bin/rpm --addsign'
 
-if re.match(r"rosa-virt(.*)", build_for_platform):
+if distrib_type == 'rhel':
     metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
     arches = ['SRPMS', 'i586', 'x86_64']
-
-if re.match(r"rosa-server(.*)", build_for_platform):
-    metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
-    arches = ['SRPMS', 'i586', 'x86_64']
+    base_sign_cmd = '/bin/rpm --addsign'
 
 
 if released == 'false':
@@ -169,14 +162,14 @@ def sign_rpm(path):
         for rpm in files:
             try:
                 print('signing rpm %s' % rpm)
-                subprocess.check_output(['rpm', '--addsign', rpm])
-                # remove chmod on rpm4
-                subprocess.check_output(['chmod', '644', rpm])
+                cmd = base_sign_cmd + ' ' + rpm
+                subprocess.check_output(cmd.split(' '))
+                os.chmod(rpm, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROTH)
             except:
                 print('something went wrong with signing rpm %s' % rpm)
                 print('waiting for 5 second and try resign again')
                 time.sleep(5)
-                subprocess.check_output(['rpm', '--addsign', rpm])
+                subprocess.check_output(cmd.split(' '))
                 continue
     else:
         print("no key provided, signing disabled")
