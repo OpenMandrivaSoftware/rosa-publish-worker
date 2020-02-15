@@ -346,8 +346,8 @@ def regenerate_metadata_repo(action):
             path = repository_path + '/' + arch + '/' + repository_name + '/' + status
             # /share/platforms/rolling/repository/i686/main/release-rpm-new
             # /share/platforms/cooker/repository/riscv64/main
-            if resign == 'true':
-                sign_rpm(path)
+            #if resign == 'true':
+            sign_rpm(path)
             print("running metadata generator for %s" % path)
             # create .publish.lock
             repo_lock(path)
