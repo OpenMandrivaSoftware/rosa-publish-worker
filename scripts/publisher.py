@@ -163,7 +163,9 @@ def sign_rpm(path):
             try:
                 print('signing rpm %s' % rpm)
                 cmd = base_sign_cmd + ' ' + rpm
+                mtime = os.path.getmtime(rpm)
                 subprocess.check_output(cmd.split(' '))
+                os.utime(rpm, (mtime, mtime))
                 os.chmod(rpm, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROTH)
             except:
                 print('something went wrong with signing rpm %s' % rpm)
@@ -346,7 +348,6 @@ def regenerate_metadata_repo(action):
             path = repository_path + '/' + arch + '/' + repository_name + '/' + status
             # /share/platforms/rolling/repository/i686/main/release-rpm-new
             # /share/platforms/cooker/repository/riscv64/main
-            #if resign == 'true':
             sign_rpm(path)
             print("running metadata generator for %s" % path)
             # create .publish.lock
