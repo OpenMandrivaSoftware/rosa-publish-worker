@@ -17,6 +17,7 @@ module AbfWorker
       @main_script     = "publisher.py"
       init_packages_lists
       system "rm -rf /root/.gnupg/ && mkdir /root/.gnupg && chmod 700 /root/.gnupg && rm -rf /root/gnupg && mkdir /root/gnupg"
+      get_public_key
       get_keys if !options.include?('resign_rpms') || options['resign_rpms']
       system 'rm -rf ' + APP_CONFIG['output_folder'] + '/publish.log'
       run_script
@@ -92,9 +93,20 @@ module AbfWorker
       file.close
     end
 
+    def get_public_key
+      resp = nil
+      IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/public_key 2> /dev/null") do |io|
+        resp = io.read
+      end
+      system 'rm -f /tmp/pubkey'
+      if resp && resp.length > 0
+        open('/tmp/pubkey', 'w') { |f| f.write(resp) }
+      end
+    end
+
     def get_keys
       resp = nil
-      IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null") do |io| 
+      IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null") do |io|
         resp = JSON.parse(io.read)
       end
       if resp && resp['repository'] && resp['repository']['key_pair']
