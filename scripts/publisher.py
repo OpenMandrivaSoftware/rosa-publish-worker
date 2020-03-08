@@ -54,7 +54,7 @@ if distrib_type == 'mdv':
 
 if distrib_type == 'dnf':
     metadata_generator = 'rosalab/createrepo:2019.1'
-    arches = ['SRPMS', 'i586', 'x86_64']
+    arches = ['SRPMS', 'i686', 'x86_64', 'aarch64']
     base_sign_cmd = '/bin/rpm --addsign'
 
 if distrib_type == 'rhel':
