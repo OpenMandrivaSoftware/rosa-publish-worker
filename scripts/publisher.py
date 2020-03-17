@@ -266,7 +266,7 @@ def invoke_docker(arch):
         rpm_list = []
         for rpm in os.listdir(tiny_repo):
             # move all rpm filex exclude debuginfo
-            if 'debuginfo' not in rpm:
+            if not any(ele in rpm for ele in debug_stuff):
                 if not os.path.exists(repo):
                     os.makedirs(repo)
                 print("moving %s to %s" % (rpm, repo))
