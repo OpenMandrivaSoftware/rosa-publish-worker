@@ -307,7 +307,7 @@ def invoke_docker(arch):
         # move debuginfo in place
         debug_rpm_list = []
         for debug_rpm in os.listdir(tiny_repo):
-            if any(ele in rpm for ele in debug_stuff):
+            if any(ele in debug_rpm for ele in debug_stuff):
                 print("moving %s to %s" % (debug_rpm, debug_repo))
                 if not os.path.exists(debug_repo):
                     os.makedirs(debug_repo)
