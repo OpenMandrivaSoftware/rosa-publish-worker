@@ -13,6 +13,9 @@ import concurrent.futures
 
 # RELEASED=false REPOSITORY_NAME=main PLATFORM_PATH=/share/platforms/cooker/repository REGENERATE_METADATA= python publisher.py
 
+# need to separate flies from cutlets
+debug_stuff = ['debuginfo', 'debugsource']
+
 # static values
 key_server = 'pool.sks-keyservers.net'
 OMV_key = 'BF81DE15'
@@ -215,7 +218,7 @@ def backup_rpms(old_list, backup_repo):
             if not os.path.exists(backup_debug_repo):
                 os.makedirs(backup_debug_repo)
             for rpm in lines:
-                if 'debuginfo' in rpm:
+                if any(ele in rpm for ele in debug_stuff):
                     if os.path.exists(debug_repo + '/' + rpm):
                         print("moving %s to %s" % (rpm, backup_repo))
                         shutil.move(debug_repo + '/' + rpm, backup_debug_repo)
@@ -304,7 +307,7 @@ def invoke_docker(arch):
         # move debuginfo in place
         debug_rpm_list = []
         for debug_rpm in os.listdir(tiny_repo):
-            if 'debuginfo' in debug_rpm:
+            if any(ele in rpm for ele in debug_stuff):
                 print("moving %s to %s" % (debug_rpm, debug_repo))
                 if not os.path.exists(debug_repo):
                     os.makedirs(debug_repo)
