@@ -361,32 +361,35 @@ def regenerate_metadata_repo(action):
     if action == 'regenerate':
         for arch in arches:
             for prefix in ['debug_', '']:
-                path = repository_path + '/' + arch + '/' + prefix + repository_name + '/' + status
-                # /share/platforms/rolling/repository/i686/main/release-rpm-new
-                # /share/platforms/cooker/repository/riscv64/main
-                repo_lock(path)
-                sign_rpm(path)
-                print("running metadata generator for %s" % path)
-                # create .publish.lock
-                try:
-                    subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [path, action])
-                    repo_unlock(path)
-                except subprocess.CalledProcessError:
-                    print("something went wrong with publishing for %s" % path)
-                    repo_unlock(path)
-                # gpg --yes --pinentry-mode loopback --passphrase-file /root/.gnupg/secret --detach-sign --armor repodata/repomd.xml
-                # sign repodata/repomd.xml
-                if distrib_type == 'dnf':
+                for status in ['release', 'testing', 'updates']:
+                    path = repository_path + '/' + arch + '/' + prefix + repository_name + '/' + status
+                    if not os.path.isdir(path):
+                        continue
+                    # /share/platforms/rolling/repository/i686/main/release-rpm-new
+                    # /share/platforms/cooker/repository/riscv64/main
+                    repo_lock(path)
+                    sign_rpm(path)
+                    print("running metadata generator for %s" % path)
+                    # create .publish.lock
                     try:
-                        subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
-                                            '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
+                        subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [path, action])
+                        repo_unlock(path)
                     except subprocess.CalledProcessError:
-                        pass
-                if distrib_type == 'mdv':
-                    try:
-                        shutil.copy('/tmp/pubkey', path + '/media_info/pubkey')
-                    except:
-                        pass
+                        print("something went wrong with publishing for %s" % path)
+                        repo_unlock(path)
+                    # gpg --yes --pinentry-mode loopback --passphrase-file /root/.gnupg/secret --detach-sign --armor repodata/repomd.xml
+                    # sign repodata/repomd.xml
+                    if distrib_type == 'dnf':
+                        try:
+                            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
+                                                '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
+                        except subprocess.CalledProcessError:
+                            pass
+                    if distrib_type == 'mdv':
+                        try:
+                            shutil.copy('/tmp/pubkey', path + '/media_info/pubkey')
+                        except:
+                            pass
 
 
 if __name__ == '__main__':
