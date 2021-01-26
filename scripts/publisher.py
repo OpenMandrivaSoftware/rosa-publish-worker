@@ -229,10 +229,10 @@ def backup_rpms(old_list, backup_repo):
 def cleanup_testing(rpm, arch):
     repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
     # http://abf-downloads.rosalinux.ru/rosa2019.1/repository/x86_64/main/testing/foo.rpm
-    rpm_remove = os.path.exists(repo + '/' + rpm)
-    if rpm_remove:
-        print("remove rpm from testing repo: {}{}".format(repo, rpm))
-        os.remove(rpm_remove)
+    rpm_to_remove = repo + '/' + rpm
+    if os.path.exists(rpm_to_remove):
+        print("remove rpm from testing repo: {}/{}".format(repo, rpm))
+        os.remove(rpm_to_remove)
 
 def invoke_docker(arch):
     sourcepath = '/tmp/' + arch + '/'
@@ -278,7 +278,7 @@ def invoke_docker(arch):
                     os.makedirs(repo)
                 # remove target rpm from testing repi
                 # only if testing not defined
-                if not testing:
+                if testing != "true":
                     cleanup_testing(rpm, arch)
                 # move rpm to the repo
                 print("moving %s to %s" % (rpm, repo))
