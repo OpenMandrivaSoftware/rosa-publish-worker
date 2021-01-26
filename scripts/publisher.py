@@ -15,6 +15,7 @@ import concurrent.futures
 
 # need to separate flies from cutlets
 debug_stuff = ['debuginfo', 'debugsource']
+testing_tmp = []
 
 # static values
 key_server = 'pool.sks-keyservers.net'
@@ -233,6 +234,7 @@ def cleanup_testing(rpm, arch):
     if os.path.exists(rpm_to_remove):
         print("remove rpm from testing repo: {}/{}".format(repo, rpm))
         os.remove(rpm_to_remove)
+        testing_tmp.append(rpm_to_remove)
 
 def invoke_docker(arch):
     sourcepath = '/tmp/' + arch + '/'
@@ -251,6 +253,7 @@ def invoke_docker(arch):
     backup_debug_repo = repository_path + '/' + arch + '/' + \
         'debug_' + repository_name + '/' + status + '-rpm-backup/'
     repo = repository_path + '/' + arch + '/' + repository_name + '/' + status
+    test_repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
     debug_repo = repository_path + '/' + arch + '/' + \
         'debug_' + repository_name + '/' + status
     backup_rpms(rpm_old_list, backup_repo)
@@ -276,7 +279,7 @@ def invoke_docker(arch):
             if not any(ele in rpm for ele in debug_stuff):
                 if not os.path.exists(repo):
                     os.makedirs(repo)
-                # remove target rpm from testing repi
+                # remove target rpm from testing repo
                 # only if testing not defined
                 if testing != "true":
                     cleanup_testing(rpm, arch)
@@ -299,6 +302,11 @@ def invoke_docker(arch):
         try:
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
             repo_unlock(repo)
+            # now testing
+            if testing_tmp:
+                print("regen metadata in {}".format(test_repo))
+                print(testing_tmp)
+                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [test_repo])
         except subprocess.CalledProcessError as e:
             print(e)
             print('publishing failed, rollbacking rpms')
