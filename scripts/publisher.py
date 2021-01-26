@@ -226,6 +226,12 @@ def backup_rpms(old_list, backup_repo):
                     print("moving %s to %s" % (rpm, backup_repo))
                     shutil.move(repo + '/' + rpm, backup_repo)
 
+def cleanup_testing(rpm, arch):
+    repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
+    # http://abf-downloads.rosalinux.ru/rosa2019.1/repository/x86_64/main/testing/foo.rpm
+    rpm_remove = os.path.exists(repo + '/' + rpm)
+    if rpm_remove:
+        os.remove(rpm_remove)
 
 def invoke_docker(arch):
     sourcepath = '/tmp/' + arch + '/'
@@ -269,9 +275,16 @@ def invoke_docker(arch):
             if not any(ele in rpm for ele in debug_stuff):
                 if not os.path.exists(repo):
                     os.makedirs(repo)
+                # remove target rpm from testing repi
+                # only if testing not defined
+                if not testing:
+                    cleanup_testing(rpm, arch)
+                # move rpm to the repo
                 print("moving %s to %s" % (rpm, repo))
                 rpm_list.append(rpm)
                 shutil.copy(tiny_repo + rpm, repo)
+
+
         repo_lock(repo)
         if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
             try:
