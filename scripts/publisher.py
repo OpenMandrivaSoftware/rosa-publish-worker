@@ -231,6 +231,7 @@ def cleanup_testing(rpm, arch):
     # http://abf-downloads.rosalinux.ru/rosa2019.1/repository/x86_64/main/testing/foo.rpm
     rpm_remove = os.path.exists(repo + '/' + rpm)
     if rpm_remove:
+        print("remove rpm from testing repo: {}{}".format(repo, rpm))
         os.remove(rpm_remove)
 
 def invoke_docker(arch):
