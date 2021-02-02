@@ -14,7 +14,7 @@ import concurrent.futures
 # RELEASED=false REPOSITORY_NAME=main PLATFORM_PATH=/share/platforms/cooker/repository REGENERATE_METADATA= python publisher.py
 
 # need to separate flies from cutlets
-debug_stuff = ['debuginfo', 'debugsource']
+debug_stuff = ['-debuginfo-', '-debugsource-']
 testing_tmp = []
 
 # static values
