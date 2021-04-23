@@ -386,7 +386,7 @@ def regenerate_metadata_repo(action):
                 for status in ['release', 'testing', 'updates']:
                     path = repository_path + '/' + arch + '/' + prefix + repository_name + '/' + status
                     if not os.path.isdir(path):
-                        continue
+                        os.makedirs(path)
                     # /share/platforms/rolling/repository/i686/main/release-rpm-new
                     # /share/platforms/cooker/repository/riscv64/main
                     repo_lock(path)
