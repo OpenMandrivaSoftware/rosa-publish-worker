@@ -199,13 +199,9 @@ def repo_unlock(path):
 
 def backup_rpms(old_list, backup_repo):
     arch = old_list.split('.')
-    repo = repository_path + '/' + arch[1] + \
-        '/' + repository_name + '/' + status
-    debug_repo = repository_path + '/' + \
-        arch[1] + '/' + 'debug_' + repository_name + '/' + status
-    backup_debug_repo = repository_path + '/' + \
-        arch[1] + '/' + 'debug_' + repository_name + \
-        '/' + status + '-rpm-backup/'
+    repo = repository_path + '/' + arch[1] + '/' + repository_name + '/' + status
+    debug_repo = repository_path + '/' + arch[1] + '/' + 'debug_' + repository_name + '/' + status
+    backup_debug_repo = repository_path + '/' + arch[1] + '/' + 'debug_' + repository_name + '/' + status + '-rpm-backup/'
     if os.path.exists(backup_repo) and os.path.isdir(backup_repo):
         shutil.rmtree(backup_repo)
     if os.path.exists(backup_debug_repo) and os.path.isdir(backup_debug_repo):
@@ -229,7 +225,7 @@ def backup_rpms(old_list, backup_repo):
 
 def cleanup_testing(rpm, arch):
     repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
-    # http://abf-downloads.rosalinux.ru/rosa2019.1/repository/x86_64/main/testing/foo.rpm
+    # http://abf-downloads.rosalinux.ru/rosa2021.1/repository/x86_64/main/testing/foo.rpm
     rpm_to_remove = repo + '/' + rpm
     if os.path.exists(rpm_to_remove):
         print("remove rpm from testing repo: {}/{}".format(repo, rpm))
@@ -245,17 +241,13 @@ def invoke_docker(arch):
     # /tmp/new.x86_64.list.downloaded
     rpm_new_list = '/tmp/' + 'new.' + arch + '.list.downloaded'
     # /share/platforms/rolling/repository/SRPMS/main/release-rpm-new/
-    tiny_repo = repository_path + '/' + arch + '/' + \
-        repository_name + '/' + status + '-rpm-new/'
+    tiny_repo = repository_path + '/' + arch + '/' + repository_name + '/' + status + '-rpm-new/'
     # backup repo for rollaback
-    backup_repo = repository_path + '/' + arch + '/' + \
-        repository_name + '/' + status + '-rpm-backup/'
-    backup_debug_repo = repository_path + '/' + arch + '/' + \
-        'debug_' + repository_name + '/' + status + '-rpm-backup/'
+    backup_repo = repository_path + '/' + arch + '/' + repository_name + '/' + status + '-rpm-backup/'
+    backup_debug_repo = repository_path + '/' + arch + '/' + 'debug_' + repository_name + '/' + status + '-rpm-backup/'
     repo = repository_path + '/' + arch + '/' + repository_name + '/' + status
     test_repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
-    debug_repo = repository_path + '/' + arch + '/' + \
-        'debug_' + repository_name + '/' + status
+    debug_repo = repository_path + '/' + arch + '/' + 'debug_' + repository_name + '/' + status
     backup_rpms(rpm_old_list, backup_repo)
     for r, d, f in os.walk(sourcepath):
         for rpm in f:
@@ -317,8 +309,7 @@ def invoke_docker(arch):
         # sign repodata/repomd.xml
         if distrib_type == 'dnf':
             try:
-                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
-                                    '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
+                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
             except subprocess.CalledProcessError:
                 pass
         if distrib_type == 'mdv':
@@ -348,8 +339,7 @@ def invoke_docker(arch):
                 sys.exit(1)
             if distrib_type == 'dnf':
                 try:
-                    subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
-                                        '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
+                    subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
                 except subprocess.CalledProcessError:
                     pass
             if distrib_type == 'mdv':
@@ -403,8 +393,7 @@ def regenerate_metadata_repo(action):
                     # sign repodata/repomd.xml
                     if distrib_type == 'dnf':
                         try:
-                            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback',
-                                                '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
+                            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
                         except subprocess.CalledProcessError:
                             pass
                     if distrib_type == 'mdv':
