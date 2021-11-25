@@ -92,7 +92,18 @@ def download_hash(hashfile, arch):
                 file_names_downloaded = '/tmp/new.{}.list.downloaded'.format(arch)
                 print(name, file=open(file_names_downloaded, "a"))
                 # curl -O -L http://file-store.openmandriva.org/api/v1/file_stores/169a726a478251325230bf3aec3a8cc04444ed3b
-                download_file = requests.get(fstore_file_url, stream=True)
+                tries = 5
+                for i in range(tries):
+                    try:
+                        download_file = requests.get(fstore_file_url, stream=True)
+                    except Exception:
+                        if i < tries -1:
+                            time.sleep(2)
+                            continue
+                        else:
+                            print("failed to download RPMs, check file-store state")
+                            sys.exit(1)
+                    break
                 tmp_dir = '/tmp/' + arch
                 tmp_name = '/tmp/' + arch + '/' + name
                 if not os.path.exists(tmp_dir):
