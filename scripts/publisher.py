@@ -278,7 +278,7 @@ def invoke_docker(arch):
         sign_rpm(tiny_repo)
         rpm_list = []
         for rpm in os.listdir(tiny_repo):
-            # move all rpm filex exclude debuginfo
+            # move all rpm files exclude debuginfo
             if not any(ele in rpm for ele in debug_stuff):
                 if not os.path.exists(repo):
                     os.makedirs(repo)
@@ -362,14 +362,12 @@ def invoke_docker(arch):
 
 
 def prepare_rpms():
-    files = [f for f in os.listdir(
-        container_path) if re.match(r'new.(.*)\.list$', f)]
+    files = [f for f in os.listdir(container_path) if re.match(r'new.(.*)\.list$', f)]
     arches = [i.split('.', 2)[1] for i in files]
     print(arches)
     # run in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_docker = {executor.submit(
-            invoke_docker, arch): arch for arch in arches}
+        future_to_docker = {executor.submit(invoke_docker, arch): arch for arch in arches}
         for future in concurrent.futures.as_completed(future_to_docker):
             status = future_to_docker[future]
             try:
