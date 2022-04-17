@@ -31,9 +31,17 @@ module AbfWorker
       log_size = (File.size(log_path).to_f / 2**20).round(2)
       log_sha1 = Digest::SHA1.file(log_path).hexdigest
 
-      `curl --user #{APP_CONFIG['file_store']['token']}: \
-      -POST -F "file_store[file]=@#{log_path}" --connect-timeout 5 --retry 5 \
-      #{APP_CONFIG['file_store']['create_url']}`
+      curl_cmd = "curl -fs --user #{APP_CONFIG['file_store']['token']}: -POST -F \"file_store[file]=@#{log_path}\" --connect-timeout 5 #{APP_CONFIG['file_store']['create_url']} 2> /dev/null"
+      loop do
+        begin
+          resp = JSON.parse(popen_with_rescue(curl_cmd))
+          break
+        rescue => e
+          puts "Failed to parse JSON: #{e.message}, retrying..."
+          sleep 10
+          retry
+        end
+      end
 
       results = {id:                   @options['id'],
                  status:               @status,
@@ -93,11 +101,29 @@ module AbfWorker
       file.close
     end
 
-    def get_public_key
-      resp = nil
-      IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/public_key 2> /dev/null") do |io|
-        resp = io.read
+    def popen_with_rescue(cmd, sleep_for = 10)
+      cmd_name = cmd.split(/\s+/).first
+      res = nil
+      loop do
+        begin
+          IO.popen(cmd) do |io|
+            res = io.read
+          end
+        rescue => e
+          puts "IO.popen error, cmd #{cmd_name}: #{e.message}, retrying in #{sleep_for}..."
+          sleep sleep_for
+          retry
+        end
+        exitstatus = $?.exitstatus
+        break if exitstatus == 0
+        puts "#{cmd_name} failed with exit status #{exitstatus}, retrying..."
+        sleep sleep_for
       end
+      res
+    end
+
+    def get_public_key
+      resp = popen_with_rescue("curl -fs -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/public_key 2> /dev/null")
       system 'rm -f /tmp/pubkey'
       if resp && resp.length > 0
         open('/tmp/pubkey', 'w') { |f| f.write(resp) }
@@ -105,10 +131,16 @@ module AbfWorker
     end
 
     def get_keys
-      resp = nil
-      IO.popen("curl -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null") do |io|
-        resp = JSON.parse(io.read)
-      end
+       loop do
+         begin
+           resp = JSON.parse(popen_with_rescue("curl -fs -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null"))
+           break
+         rescue => e
+           puts "Failed to parse JSON: #{e.message}, retrying..."
+           sleep 10
+           retry
+         end
+       end
       if resp && resp['repository'] && resp['repository']['key_pair']
         key_pair = resp['repository']['key_pair']
         if key_pair['public'].length > 0 && key_pair['secret'].length > 0
