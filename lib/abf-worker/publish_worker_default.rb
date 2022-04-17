@@ -131,6 +131,7 @@ module AbfWorker
     end
 
     def get_keys
+       resp = nil
        loop do
          begin
            resp = JSON.parse(popen_with_rescue("curl -fs -u #{APP_CONFIG['file_store']['token']}: https://abf.rosalinux.ru/api/v1/repositories/#{@repository_id}/key_pair 2> /dev/null"))
