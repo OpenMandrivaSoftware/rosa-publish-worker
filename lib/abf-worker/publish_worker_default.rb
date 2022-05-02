@@ -31,16 +31,18 @@ module AbfWorker
       log_size = (File.size(log_path).to_f / 2**20).round(2)
       log_sha1 = Digest::SHA1.file(log_path).hexdigest
 
-      curl_cmd = "curl -fs --user #{APP_CONFIG['file_store']['token']}: -POST -F \"file_store[file]=@#{log_path}\" --connect-timeout 5 #{APP_CONFIG['file_store']['create_url']} 2> /dev/null"
+      curl_upload_cmd = "curl s --user #{APP_CONFIG['file_store']['token']}: -POST -F \"file_store[file]=@#{log_path}\" #{APP_CONFIG['file_store']['create_url']} 2> /dev/null"
+      curl_check_cmd = "curl -s --user #{APP_CONFIG['file_store']['token']}: https://file-store.rosalinux.ru/api/v1/file_stores?hash=#{log_sha1} 2> /dev/null"
       loop do
-        begin
-          resp = JSON.parse(popen_with_rescue(curl_cmd))
-          break
-        rescue => e
-          puts "Failed to parse JSON: #{e.message}, retrying..."
-          sleep 10
-          retry
+        resp = JSON.parse(popen_with_rescue(curl_check_cmd)) rescue nil
+        if resp && resp.is_a?(Array)
+          item = resp[0]
+          break if item && item['sha1_hash'] == log_sha1
+        else
+          puts "Received bad response from file-store, retrying..."
+          sleep 5
         end
+        popen_with_rescue(curl_upload_cmd)
       end
 
       results = {id:                   @options['id'],
