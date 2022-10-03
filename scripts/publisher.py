@@ -98,6 +98,7 @@ def download_hash(hashfile, arch):
                         download_file = requests.get(fstore_file_url, stream=True)
                     except Exception:
                         if i < tries - 1:
+                            print("something went wrong, sleeping for a moment")
                             time.sleep(5)
                             continue
                         else:
