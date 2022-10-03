@@ -371,12 +371,20 @@ def prepare_rpms():
         future_to_docker = {executor.submit(invoke_docker, arch): arch for arch in arches}
         for future in concurrent.futures.as_completed(future_to_docker):
             status = future_to_docker[future]
-            try:
-                data = future.result()
-            except Exception as exc:
-                print('%r generated an exception: %s' % (status, exc))
-            else:
-                print('%r repo metadata recreated' % (status))
+            for i in range(5):
+                try:
+                    data = future.result()
+                except Exception as exc:
+                    if i < tries - 1:
+                        print('%r generated an exception: %s' % (status, exc))
+                        time.sleep(5)
+                        continue
+                    else:
+                        print('something went wrong, exiting')
+                        sys.exit(1)
+                else:
+                    print('%r repo metadata recreated' % (status))
+                break
 
 
 def regenerate_metadata_repo(action):
