@@ -98,7 +98,7 @@ def download_hash(hashfile, arch):
                         download_file = requests.get(fstore_file_url, stream=True)
                     except Exception:
                         if i < tries - 1:
-                            time.sleep(2)
+                            time.sleep(5)
                             continue
                         else:
                             print("failed to download RPMs, check file-store state")
