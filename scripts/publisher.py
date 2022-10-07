@@ -371,7 +371,8 @@ def prepare_rpms():
         future_to_docker = {executor.submit(invoke_docker, arch): arch for arch in arches}
         for future in concurrent.futures.as_completed(future_to_docker):
             status = future_to_docker[future]
-            for i in range(5):
+            tries = 5
+            for i in range(tries):
                 try:
                     data = future.result()
                 except Exception as exc:
