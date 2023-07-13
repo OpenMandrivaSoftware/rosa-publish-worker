@@ -59,12 +59,12 @@ if distrib_type == 'mdv':
 if distrib_type == 'dnf':
     metadata_generator = 'rosalab/createrepo:2019.1'
     arches = ['SRPMS', 'i686', 'x86_64', 'aarch64', 'e2kv4', 'riscv64']
-    base_sign_cmd = '/bin/rpm --addsign'
+    base_sign_cmd = '/usr/bin/rpmsign --addsign'
 
 if distrib_type == 'rhel':
     metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
     arches = ['SRPMS', 'i586', 'x86_64', 'i686']
-    base_sign_cmd = '/bin/rpm --addsign'
+    base_sign_cmd = '/usr/bin/rpmsign --addsign'
 
 
 if released == 'false':
