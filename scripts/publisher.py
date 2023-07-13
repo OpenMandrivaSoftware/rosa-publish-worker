@@ -22,8 +22,7 @@ key_server = 'pool.sks-keyservers.net'
 OMV_key = 'BF81DE15'
 gnupg_path = '/root/gnupg'
 use_debug_repo = 'true'
-file_store_base = os.environ.get('FILE_STORE_ADDR')
-file_store_base == 'http://file-store.openmandriva.org'
+file_store_base == 'http://file-store.rosalinux.ru'
 abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
 #print(os.environ.keys())
 
