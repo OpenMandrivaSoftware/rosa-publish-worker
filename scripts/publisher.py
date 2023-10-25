@@ -62,7 +62,7 @@ if distrib_type == 'dnf':
 
 if distrib_type == 'rhel':
     metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
-    arches = ['SRPMS', 'i586', 'x86_64', 'i686']
+    arches = ['SRPMS', 'i586', 'x86_64', 'i686', 'aarch64']
     base_sign_cmd = '/usr/bin/rpmsign --addsign'
 
 
