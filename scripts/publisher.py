@@ -362,8 +362,8 @@ def invoke_docker(arch):
 
 
 def prepare_rpms():
-    files = [f for f in os.listdir(container_path) if re.match(r'new.(.*)\.list$', f)]
-    arches = [i.split('.', 2)[1] for i in files]
+    files = [f for f in os.listdir(container_path) if re.match(r'(new|old).(.*)\.list$', f)]
+    arches = list(set([i.split('.', 2)[1] for i in files]))
     print(arches)
     # run in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
