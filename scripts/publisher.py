@@ -259,6 +259,7 @@ def invoke_docker(arch):
     repo = repository_path + '/' + arch + '/' + repository_name + '/' + status
     test_repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
     debug_repo = repository_path + '/' + arch + '/' + 'debug_' + repository_name + '/' + status
+    repo_lock(repo)
     backup_rpms(rpm_old_list, backup_repo)
     for r, d, f in os.walk(sourcepath):
         for rpm in f:
@@ -291,74 +292,72 @@ def invoke_docker(arch):
                 rpm_list.append(rpm)
                 shutil.copy(tiny_repo + rpm, repo)
 
-
-        repo_lock(repo)
-        if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
-            try:
-                subprocess.check_output(['cp', '-fv', rpm_old_list, repo + '/media_info/old-metadata.lst'])
-            except:
-                pass
-            try:
-                subprocess.check_output(['cp', '-fv', rpm_new_list, repo + '/media_info/new-metadata.lst'])
-            except:
-                pass
+    if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
         try:
-            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
-            repo_unlock(repo)
-            # now testing
-            if testing_tmp:
-                print("regen metadata in {}".format(test_repo))
-                print(testing_tmp)
-                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [test_repo])
-        except subprocess.CalledProcessError as e:
-            print(e)
+            subprocess.check_output(['cp', '-fv', rpm_old_list, repo + '/media_info/old-metadata.lst'])
+        except:
+            pass
+        try:
+            subprocess.check_output(['cp', '-fv', rpm_new_list, repo + '/media_info/new-metadata.lst'])
+        except:
+            pass
+    try:
+        subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [repo])
+        repo_unlock(repo)
+        # now testing
+        if testing_tmp:
+            print("regen metadata in {}".format(test_repo))
+            print(testing_tmp)
+            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [test_repo])
+    except subprocess.CalledProcessError as e:
+        print(e)
+        print('publishing failed, rollbacking rpms')
+        repo_unlock(repo)
+        # rollback rpms
+        shutil.copy(backup_repo + rpm, repo)
+        sys.exit(1)
+    # sign repodata/repomd.xml
+    if distrib_type == 'dnf':
+        try:
+            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
+        except subprocess.CalledProcessError:
+            pass
+    if distrib_type == 'mdv':
+        try:
+            shutil.copy('/tmp/pubkey', repo + '/media_info/pubkey')
+        except:
+            pass
+    # move debuginfo in place
+    debug_rpm_list = []
+    for debug_rpm in os.listdir(tiny_repo):
+        if any(ele in debug_rpm for ele in debug_stuff):
+            print("moving %s to %s" % (debug_rpm, debug_repo))
+            if not os.path.exists(debug_repo):
+                os.makedirs(debug_repo)
+            shutil.copy(tiny_repo + debug_rpm, debug_repo)
+            debug_rpm_list.append(debug_rpm)
+    if os.path.exists(debug_repo) and debug_rpm_list:
+        repo_lock(debug_repo)
+        try:
+            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
+            repo_unlock(debug_repo)
+        except subprocess.CalledProcessError:
             print('publishing failed, rollbacking rpms')
-            repo_unlock(repo)
+            repo_unlock(debug_repo)
             # rollback rpms
-            shutil.copy(backup_repo + rpm, repo)
+            shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
             sys.exit(1)
-        # sign repodata/repomd.xml
         if distrib_type == 'dnf':
             try:
-                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
+                subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
             except subprocess.CalledProcessError:
                 pass
         if distrib_type == 'mdv':
             try:
-                shutil.copy('/tmp/pubkey', repo + '/media_info/pubkey')
+                shutil.copy('/tmp/pubkey', debug_repo + '/media_info/pubkey')
             except:
                 pass
-        # move debuginfo in place
-        debug_rpm_list = []
-        for debug_rpm in os.listdir(tiny_repo):
-            if any(ele in debug_rpm for ele in debug_stuff):
-                print("moving %s to %s" % (debug_rpm, debug_repo))
-                if not os.path.exists(debug_repo):
-                    os.makedirs(debug_repo)
-                shutil.copy(tiny_repo + debug_rpm, debug_repo)
-                debug_rpm_list.append(debug_rpm)
-        if os.path.exists(debug_repo) and debug_rpm_list:
-            repo_lock(debug_repo)
-            try:
-                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
-                repo_unlock(debug_repo)
-            except subprocess.CalledProcessError:
-                print('publishing failed, rollbacking rpms')
-                repo_unlock(debug_repo)
-                # rollback rpms
-                shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
-                sys.exit(1)
-            if distrib_type == 'dnf':
-                try:
-                    subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
-                except subprocess.CalledProcessError:
-                    pass
-            if distrib_type == 'mdv':
-                try:
-                    shutil.copy('/tmp/pubkey', debug_repo + '/media_info/pubkey')
-                except:
-                    pass
-        shutil.rmtree(tiny_repo)
+    shutil.rmtree(tiny_repo)
 
 
 def prepare_rpms():
