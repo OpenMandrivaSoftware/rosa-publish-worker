@@ -254,12 +254,12 @@ def invoke_docker(arch):
     # /tmp/new.x86_64.list.downloaded
     rpm_new_list = os.path.join('/tmp', f'new.{arch}.list.downloaded')
     # /share/platforms/rolling/repository/SRPMS/main/release-rpm-new/
-    tiny_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-new')
+    tiny_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-new/')
     # backup repo for rollaback
-    backup_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-backup')
-    backup_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', f'{status}-rpm-backup')
+    backup_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-backup/')
+    backup_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', f'{status}-rpm-backup/')
     repo = os.path.join(repository_path, arch, repository_name, status)
-    test_repo = os.path.join(repository_path, arch, repository_name, 'testing')
+    test_repo = os.path.join(repository_path, arch, repository_name, 'testing/')
     debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', status)
     backup_rpms(rpm_old_list, backup_repo)
     for root, dirs, files in os.walk(sourcepath):
