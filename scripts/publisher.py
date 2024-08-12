@@ -193,26 +193,28 @@ def sign_rpm(path):
 
 
 def repo_lock(path):
-    while os.path.exists(path + '/.publish.lock'):
-        print(".publish.lock exist, let wait a bit...")
+    lock_file = os.path.join(path, '.publish.lock')
+    while os.path.exists(lock_file):
+        print(".publish.lock exists, waiting a bit...")
         time.sleep(60)
-    print("creating %s/.publish.lock" % path)
+    print(f"creating {lock_file}")
     if not os.path.isdir(path):
         os.makedirs(path)
-    open(path + '/.publish.lock', 'a').close()
+    open(lock_file, 'a').close()
 
 
 def repo_unlock(path):
-    print("removing %s/.publish.lock" % path)
-    if os.path.exists(path + '/.publish.lock'):
-        os.remove(path + '/.publish.lock')
+    lock_file_path = os.path.join(path, '.publish.lock')
+    print(f"removing {lock_file_path}")
+    if os.path.exists(lock_file_path):
+        os.remove(lock_file_path)
 
 
 def backup_rpms(old_list, backup_repo):
     arch = old_list.split('.')
-    repo = repository_path + '/' + arch[1] + '/' + repository_name + '/' + status
-    debug_repo = repository_path + '/' + arch[1] + '/' + 'debug_' + repository_name + '/' + status
-    backup_debug_repo = repository_path + '/' + arch[1] + '/' + 'debug_' + repository_name + '/' + status + '-rpm-backup/'
+    repo = f"{repository_path}/{arch[1]}/{repository_name}/{status}"
+    debug_repo = f"{repository_path}/{arch[1]}/debug_{repository_name}/{status}"
+    backup_debug_repo = f"{repository_path}/{arch[1]}/debug_{repository_name}/{status}-rpm-backup/"
     if os.path.exists(backup_repo) and os.path.isdir(backup_repo):
         shutil.rmtree(backup_repo)
     if os.path.exists(backup_debug_repo) and os.path.isdir(backup_debug_repo):
@@ -235,46 +237,45 @@ def backup_rpms(old_list, backup_repo):
                     shutil.move(repo + '/' + rpm, backup_repo)
 
 def cleanup_testing(rpm, arch):
-    repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
+    repo = f"{repository_path}/{arch}/{repository_name}/testing"
     # http://abf-downloads.rosalinux.ru/rosa2021.1/repository/x86_64/main/testing/foo.rpm
-    rpm_to_remove = repo + '/' + rpm
+    rpm_to_remove = f"{repo}/{rpm}"
     if os.path.exists(rpm_to_remove):
         print("remove rpm from testing repo: {}/{}".format(repo, rpm))
         os.remove(rpm_to_remove)
         testing_tmp.append(rpm_to_remove)
 
 def invoke_docker(arch):
-    sourcepath = '/tmp/' + arch + '/'
+    sourcepath = os.path.join('/tmp', arch)
     # /root/docker-publish-worker/container/new.riscv64.list
-    rpm_arch_list = container_path + '/' + 'new.' + arch + '.list'
+    rpm_arch_list = os.path.join(container_path, f'new.{arch}.list')
     # old.SRPMS.list
-    rpm_old_list = container_path + '/' + 'old.' + arch + '.list'
+    rpm_old_list = os.path.join(container_path, f'old.{arch}.list')
     # /tmp/new.x86_64.list.downloaded
-    rpm_new_list = '/tmp/' + 'new.' + arch + '.list.downloaded'
+    rpm_new_list = os.path.join('/tmp', f'new.{arch}.list.downloaded')
     # /share/platforms/rolling/repository/SRPMS/main/release-rpm-new/
-    tiny_repo = repository_path + '/' + arch + '/' + repository_name + '/' + status + '-rpm-new/'
+    tiny_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-new')
     # backup repo for rollaback
-    backup_repo = repository_path + '/' + arch + '/' + repository_name + '/' + status + '-rpm-backup/'
-    backup_debug_repo = repository_path + '/' + arch + '/' + 'debug_' + repository_name + '/' + status + '-rpm-backup/'
-    repo = repository_path + '/' + arch + '/' + repository_name + '/' + status
-    test_repo = repository_path + '/' + arch + '/' + repository_name + '/' + 'testing'
-    debug_repo = repository_path + '/' + arch + '/' + 'debug_' + repository_name + '/' + status
+    backup_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-backup')
+    backup_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', f'{status}-rpm-backup')
+    repo = os.path.join(repository_path, arch, repository_name, status)
+    test_repo = os.path.join(repository_path, arch, repository_name, 'testing')
+    debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', status)
     backup_rpms(rpm_old_list, backup_repo)
-    for r, d, f in os.walk(sourcepath):
-        for rpm in f:
-            if '.rpm' in rpm:
-                os.remove(sourcepath + rpm)
+    for root, dirs, files in os.walk(sourcepath):
+        for file in files:
+            if file.endswith('.rpm'):
+                os.remove(os.path.join(sourcepath, file))
+
     if os.path.exists(rpm_arch_list) and os.path.getsize(rpm_arch_list) > 0:
         subprocess.check_output(['rm', '-fv', '/tmp/*.downloaded'])
         # download hashes here and make /tmp/new.x86_64.list.downloaded
         download_hash(rpm_arch_list, arch)
-        source = os.listdir(sourcepath)
-        for files in source:
-            if files.endswith('.rpm'):
-                # target dir + foo.x86_64.rpm to dir
-                if not os.path.exists(tiny_repo):
-                    os.makedirs(tiny_repo)
-                shutil.copy(sourcepath + files, tiny_repo)
+        source_files = [f for f in os.listdir(sourcepath) if f.endswith('.rpm')]
+        os.makedirs(tiny_repo, exist_ok=True)
+        for file in source_files:
+            shutil.copy(os.path.join(sourcepath, file), tiny_repo)
+
         sign_rpm(tiny_repo)
         rpm_list = []
         for rpm in os.listdir(tiny_repo):
@@ -289,7 +290,7 @@ def invoke_docker(arch):
                 # move rpm to the repo
                 print("moving %s to %s" % (rpm, repo))
                 rpm_list.append(rpm)
-                shutil.copy(tiny_repo + rpm, repo)
+                shutil.copy(os.path.join(tiny_repo, rpm), repo)
 
 
     repo_lock(repo)
@@ -394,7 +395,7 @@ def regenerate_metadata_repo(action):
         for arch in arches:
             for prefix in ['debug_', '']:
                 for status in ['release', 'testing', 'updates']:
-                    path = repository_path + '/' + arch + '/' + prefix + repository_name + '/' + status
+                    path = f"{repository_path}/{arch}/{prefix}{repository_name}/{status}"
                     if not os.path.isdir(path):
                         os.makedirs(path)
                     # /share/platforms/rolling/repository/i686/main/release-rpm-new
