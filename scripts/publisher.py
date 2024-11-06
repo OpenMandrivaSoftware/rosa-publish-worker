@@ -56,12 +56,12 @@ if distrib_type == 'mdv':
     base_sign_cmd = '/rpm5/lib64/ld-linux-x86-64.so.2 --library-path /rpm5/lib64:/rpm5/usr/lib64 /rpm5/rpm --addsign'
 
 if distrib_type == 'dnf':
-    metadata_generator = 'rosalab/createrepo:2019.1'
+    metadata_generator = 'rosalab/createrepo:dnf'
     arches = ['SRPMS', 'i686', 'x86_64', 'aarch64', 'e2kv4', 'riscv64', 'loongarch64']
     base_sign_cmd = '/usr/bin/rpmsign --addsign'
 
 if distrib_type == 'rhel':
-    metadata_generator = '-e build_for_platform={} rosalab/createrepo'.format(build_for_platform)
+    metadata_generator = '-e build_for_platform={} rosalab/createrepo:rhel'.format(build_for_platform)
     arches = ['SRPMS', 'i586', 'x86_64', 'i686', 'aarch64']
     base_sign_cmd = '/usr/bin/rpmsign --addsign'
 
