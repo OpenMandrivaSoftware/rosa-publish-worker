@@ -119,9 +119,9 @@ def key_stuff():
     key_is = ''
     if os.path.isdir(gpg_dir) and os.path.getsize(gpg_dir) > 0:
         try:
-            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/pubring.gpg'])
-            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/secring.gpg'])
-            p = subprocess.check_output(['/usr/bin/gpg', '--list-public-keys', '--homedir', gpg_dir])
+            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/pubring.gpg'], stderr=subprocess.STDOUT)
+            subprocess.check_output(['/usr/bin/gpg', '--import', '/root/gnupg/secring.gpg'], stderr=subprocess.STDOUT)
+            p = subprocess.check_output(['/usr/bin/gpg', '--list-public-keys', '--homedir', gpg_dir], stderr=subprocess.STDOUT)
             # last 8 symbols
             key_pattern = '([A0-Z9]{8}$)'
             omv_key = re.search(key_pattern, p.decode('utf-8'), re.MULTILINE)
@@ -176,17 +176,20 @@ def sign_rpm(path):
     if os.path.exists(rpm_macro) and os.path.getsize(rpm_macro) > 0:
         for rpm in files:
             try:
+                output = ''
                 print('signing rpm %s' % rpm)
                 cmd = base_sign_cmd + ' ' + rpm
                 mtime = os.path.getmtime(rpm)
-                subprocess.check_output(cmd.split(' '))
+                output = subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
                 os.utime(rpm, (mtime, mtime))
                 os.chmod(rpm, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROTH)
             except:
                 print('something went wrong with signing rpm %s' % rpm)
+                if output:
+                    print(output)
                 print('waiting for 5 second and try resign again')
                 time.sleep(5)
-                subprocess.check_output(cmd.split(' '))
+                subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
                 continue
     else:
         print("no key provided, signing disabled")
@@ -244,6 +247,11 @@ def cleanup_testing(rpm, arch):
         print("remove rpm from testing repo: {}/{}".format(repo, rpm))
         os.remove(rpm_to_remove)
         testing_tmp.append(rpm_to_remove)
+    rpm_to_remove = f"{repo}_debug/{rpm}"
+    if os.path.exists(rpm_to_remove):
+        print("remove rpm from testing repo: {}/{}".format(repo, rpm))
+        os.remove(rpm_to_remove)
+        testing_tmp.append(rpm_to_remove)
 
 def invoke_docker(arch):
     sourcepath = os.path.join('/tmp', arch)
@@ -277,10 +285,16 @@ def invoke_docker(arch):
             shutil.copy(os.path.join(sourcepath, file), tiny_repo)
 
         sign_rpm(tiny_repo)
-        rpm_list = []
         for rpm in os.listdir(tiny_repo):
             # move all rpm files exclude debuginfo
-            if not any(ele in rpm for ele in debug_stuff):
+            if any(ele in rpm for ele in debug_stuff):
+                if not os.path.exists(debug_repo):
+                    os.makedirs(debug_repo)
+                if testing != "true":
+                    cleanup_testing(rpm, arch)
+                print("moving debug %s to %s" % (debug_rpm, debug_repo))
+                shutil.copy(tiny_repo + debug_rpm, debug_repo)
+            else:
                 if not os.path.exists(repo):
                     os.makedirs(repo)
                 # remove target rpm from testing repo
@@ -289,11 +303,14 @@ def invoke_docker(arch):
                     cleanup_testing(rpm, arch)
                 # move rpm to the repo
                 print("moving %s to %s" % (rpm, repo))
-                rpm_list.append(rpm)
                 shutil.copy(os.path.join(tiny_repo, rpm), repo)
 
+    if os.path.exists(tiny_repo):
+        shutil.rmtree(tiny_repo)
 
     repo_lock(repo)
+    repo_lock(debug_repo)
+
     if build_for_platform in ['rosa2012.1', 'rosa2014.1', 'rosa2016.1', 'rosa2019.0']:
         try:
             subprocess.check_output(['cp', '-fv', rpm_old_list, repo + '/media_info/old-metadata.lst'])
@@ -321,7 +338,7 @@ def invoke_docker(arch):
     # sign repodata/repomd.xml
     if distrib_type == 'dnf':
         try:
-            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', repo + '/repodata/repomd.xml'])
+            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', repo + '/repodata/repomd.xml'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError:
             pass
     if distrib_type == 'mdv':
@@ -330,39 +347,26 @@ def invoke_docker(arch):
         except:
             pass
 
-    if os.path.exists(tiny_repo):
-        # move debuginfo in place
-        debug_rpm_list = []
-        for debug_rpm in os.listdir(tiny_repo):
-            if any(debug_item in debug_rpm for debug_item in debug_stuff):
-                print("moving %s to %s" % (debug_rpm, debug_repo))
-                if not os.path.exists(debug_repo):
-                    os.makedirs(debug_repo)
-                shutil.copy(tiny_repo + debug_rpm, debug_repo)
-                debug_rpm_list.append(debug_rpm)
-        if os.path.exists(debug_repo) and debug_rpm_list:
-            repo_lock(debug_repo)
-            try:
-                subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
-                repo_unlock(debug_repo)
-            except subprocess.CalledProcessError:
-                print('publishing failed, rollbacking rpms')
-                repo_unlock(debug_repo)
-                # rollback rpms
-                shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
-                sys.exit(1)
-            if distrib_type == 'dnf':
-                try:
-                    subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'])
-                except subprocess.CalledProcessError:
-                    pass
-            if distrib_type == 'mdv':
-                try:
-                    shutil.copy('/tmp/pubkey', debug_repo + '/media_info/pubkey')
-                except:
-                    pass
-        shutil.rmtree(tiny_repo)
-
+    repo_lock(debug_repo)
+    try:
+        subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
+        repo_unlock(debug_repo)
+    except subprocess.CalledProcessError:
+        print('publishing failed, rollbacking rpms')
+        repo_unlock(debug_repo)
+        # rollback rpms
+        shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
+        sys.exit(1)
+    if distrib_type == 'dnf':
+        try:
+            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', debug_repo + '/repodata/repomd.xml'], stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError:
+            pass
+    if distrib_type == 'mdv':
+        try:
+            shutil.copy('/tmp/pubkey', debug_repo + '/media_info/pubkey')
+        except:
+            pass
 
 def prepare_rpms():
     files = [f for f in os.listdir(container_path) if re.match(r'(new|old).(.*)\.list$', f)]
@@ -414,7 +418,7 @@ def regenerate_metadata_repo(action):
                     # sign repodata/repomd.xml
                     if distrib_type == 'dnf':
                         try:
-                            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', path + '/repodata/repomd.xml'])
+                            subprocess.check_output(['/usr/bin/gpg', '--yes', '--pinentry-mode', 'loopback', '--detach-sign', '--armor', path + '/repodata/repomd.xml'], stderr=subprocess.STDOUT)
                         except subprocess.CalledProcessError:
                             pass
                     if distrib_type == 'mdv':
