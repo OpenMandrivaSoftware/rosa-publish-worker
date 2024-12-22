@@ -349,7 +349,6 @@ def invoke_docker(arch):
         except:
             pass
 
-    repo_lock(debug_repo)
     try:
         subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [debug_repo])
         repo_unlock(debug_repo)
