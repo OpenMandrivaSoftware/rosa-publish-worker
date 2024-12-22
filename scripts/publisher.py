@@ -268,6 +268,7 @@ def invoke_docker(arch):
     backup_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', f'{status}-rpm-backup/')
     repo = os.path.join(repository_path, arch, repository_name, status)
     test_repo = os.path.join(repository_path, arch, repository_name, 'testing/')
+    test_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', 'testing/')
     debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', status)
     backup_rpms(rpm_old_list, backup_repo)
     for root, dirs, files in os.walk(sourcepath):
@@ -326,8 +327,9 @@ def invoke_docker(arch):
         # now testing
         if testing_tmp:
             print("regen metadata in {}".format(test_repo))
-            print(testing_tmp)
             subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [test_repo])
+            print("regen metadata in {}".format(test_debug_repo))
+            subprocess.check_output(['/usr/bin/docker', 'run', '--rm', '-v', abf_repo_path] + metadata_generator.split(' ') + [test_debug_repo])
     except subprocess.CalledProcessError as e:
         print(e)
         print('publishing failed, rollbacking rpms')
