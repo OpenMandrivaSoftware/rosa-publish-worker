@@ -293,8 +293,8 @@ def invoke_docker(arch):
                     os.makedirs(debug_repo)
                 if testing != "true":
                     cleanup_testing(rpm, arch)
-                print("moving debug %s to %s" % (debug_rpm, debug_repo))
-                shutil.copy(tiny_repo + debug_rpm, debug_repo)
+                print("moving debug %s to %s" % (rpm, debug_repo))
+                shutil.copy(tiny_repo + rpm, debug_repo)
             else:
                 if not os.path.exists(repo):
                     os.makedirs(repo)
@@ -335,7 +335,7 @@ def invoke_docker(arch):
         print('publishing failed, rollbacking rpms')
         repo_unlock(repo)
         # rollback rpms
-        shutil.copy(backup_repo + rpm, repo)
+        # shutil.copy(backup_repo + rpm, repo)
         sys.exit(1)
     # sign repodata/repomd.xml
     if distrib_type == 'dnf':
@@ -357,7 +357,7 @@ def invoke_docker(arch):
         print('publishing failed, rollbacking rpms')
         repo_unlock(debug_repo)
         # rollback rpms
-        shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
+        # shutil.copy(backup_debug_repo + debug_rpm, debug_repo)
         sys.exit(1)
     if distrib_type == 'dnf':
         try:
