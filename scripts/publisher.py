@@ -263,6 +263,7 @@ def invoke_docker(arch):
     rpm_new_list = os.path.join('/tmp', f'new.{arch}.list.downloaded')
     # /share/platforms/rolling/repository/SRPMS/main/release-rpm-new/
     tiny_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-new/')
+    shutil.rmtree(tiny_repo, ignore_errors = True)
     # backup repo for rollaback
     backup_repo = os.path.join(repository_path, arch, repository_name, f'{status}-rpm-backup/')
     backup_debug_repo = os.path.join(repository_path, arch, f'debug_{repository_name}', f'{status}-rpm-backup/')
