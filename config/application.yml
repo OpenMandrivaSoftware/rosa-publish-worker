@@ -1,5 +1,5 @@
 file_store:
-  url: 'http://file-store.rosalinux.ru/api/v1/file_stores'
-  create_url: 'http://file-store.rosalinux.ru/api/v1/upload'
+  url: 'http://file-store.rosa.ru/api/v1/file_stores'
+  create_url: 'http://file-store.rosa.ru/api/v1/upload'
   token: <%= ENV["BUILD_TOKEN"] %>
 output_folder: <%= ROOT + '/output' %>

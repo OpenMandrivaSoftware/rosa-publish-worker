@@ -22,7 +22,7 @@ key_server = 'pool.sks-keyservers.net'
 OMV_key = 'BF81DE15'
 gnupg_path = '/root/gnupg'
 use_debug_repo = 'true'
-file_store_base = 'https://file-store.rosalinux.ru'
+file_store_base = 'https://file-store.rosa.ru'
 abf_repo_path = '/home/abf/abf-downloads/:/share/platforms'
 #print(os.environ.keys())
 
@@ -241,7 +241,7 @@ def backup_rpms(old_list, backup_repo):
 
 def cleanup_testing(rpm, arch):
     repo = f"{repository_path}/{arch}/{repository_name}/testing"
-    # http://abf-downloads.rosalinux.ru/rosa2021.1/repository/x86_64/main/testing/foo.rpm
+    # http://abf-downloads.rosa.ru/rosa2021.1/repository/x86_64/main/testing/foo.rpm
     rpm_to_remove = f"{repo}/{rpm}"
     if os.path.exists(rpm_to_remove):
         print("remove rpm from testing repo: {}/{}".format(repo, rpm))
